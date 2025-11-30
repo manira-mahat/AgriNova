@@ -22,14 +22,28 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await AuthService.register(data);
-      final token = response['token'];
-      _user = User.fromJson(response['user']);
+
+      // Check if response has required fields
+      if (response['token'] == null || response['user'] == null) {
+        _error = response['error']?.toString() ?? 'Registration failed - Invalid response from server';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final token = response['token'] as String;
+      _user = User.fromJson(response['user'] as Map<String, dynamic>);
       await ApiService.saveToken(token);
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // Parse error message from exception
+      String errorMsg = e.toString().replaceFirst('Exception: ', '');
+      if (errorMsg.startsWith('Error: Exception:')) {
+        errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
+      }
+      _error = errorMsg;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -44,14 +58,28 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await AuthService.login(username, password);
-      final token = response['token'];
-      _user = User.fromJson(response['user']);
+
+      // Check if response has required fields
+      if (response['token'] == null || response['user'] == null) {
+        _error = response['error']?.toString() ?? 'Login failed - Invalid response from server';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final token = response['token'] as String;
+      _user = User.fromJson(response['user'] as Map<String, dynamic>);
       await ApiService.saveToken(token);
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      // Parse error message from exception
+      String errorMsg = e.toString().replaceFirst('Exception: ', '');
+      if (errorMsg.startsWith('Error: Exception:')) {
+        errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
+      }
+      _error = errorMsg;
       _isLoading = false;
       notifyListeners();
       return false;

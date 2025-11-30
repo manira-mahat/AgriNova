@@ -32,6 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    if (!mounted) return;
+    
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     final success = await authProvider.login(
@@ -39,12 +41,14 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
 
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
       );
-    } else if (mounted) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(authProvider.error ?? 'Login failed')),
       );
@@ -60,11 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  Icon(Icons.agriculture, size: 100, color: Colors.green[700]),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo
+                    Icon(Icons.agriculture, size: 100, color: Colors.green[700]),
                   const SizedBox(height: 20),
 
                   // Title
@@ -129,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ],
+                ),
               ),
             ),
           ),

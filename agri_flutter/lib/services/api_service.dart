@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   // Change this to your computer's IP address for physical device
   // For Android Emulator use: http://10.0.2.2:8000/api/
-  static const String baseUrl = "http://192.168.18.195:8000/api/";
+  // For Web use: http://127.0.0.1:8000/api/
+  static const String baseUrl = "http://127.0.0.1:8000/api/";
 
   // Get saved token
   static Future<String?> getToken() async {
@@ -47,7 +48,13 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
       } else {
-        throw Exception(response.body);
+        // Try to parse error response as JSON
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(jsonEncode(errorData));
+        } catch (_) {
+          throw Exception(response.body);
+        }
       }
     } catch (e) {
       throw Exception("Error: $e");

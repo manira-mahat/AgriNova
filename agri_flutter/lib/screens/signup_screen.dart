@@ -17,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordConfirmController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -28,6 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _phoneController.dispose();
@@ -48,6 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
       "username": _usernameController.text,
       "email": _emailController.text,
       "password": _passwordController.text,
+      "password_confirm": _passwordConfirmController.text,
       "first_name": _firstNameController.text,
       "last_name": _lastNameController.text,
       "phone_number": _phoneController.text,
@@ -151,6 +154,30 @@ class _SignupScreenState extends State<SignupScreen> {
                       }
                       if (value.length < 6) {
                         return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Confirm Password
+                  TextFormField(
+                    controller: _passwordConfirmController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password *',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
                       }
                       return null;
                     },
