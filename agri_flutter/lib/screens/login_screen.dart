@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (!mounted) return;
-    
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     final success = await authProvider.login(
@@ -70,71 +70,75 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Logo
-                    Icon(Icons.agriculture, size: 100, color: Colors.green[700]),
-                  const SizedBox(height: 20),
-
-                  // Title
-                  Text(
-                    'AgriNova',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                    Icon(
+                      Icons.agriculture,
+                      size: 100,
                       color: Colors.green[700],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Welcome Back',
-                    style: TextStyle(fontSize: 18, color: Colors.green[600]),
-                  ),
-                  const SizedBox(height: 40),
+                    const SizedBox(height: 20),
 
-                  // Username field
-                  CustomTextField(
-                    label: 'Username',
-                    controller: _usernameController,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Password field
-                  CustomTextField(
-                    label: 'Password',
-                    controller: _passwordController,
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Login button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return CustomButton(
-                        text: 'Login',
-                        onPressed: _handleLogin,
-                        isLoading: authProvider.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Signup link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account? "),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('Sign Up'),
+                    // Title
+                    Text(
+                      'AgriNova',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Welcome Back',
+                      style: TextStyle(fontSize: 18, color: Colors.green[600]),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Username field
+                    CustomTextField(
+                      label: 'Username',
+                      controller: _usernameController,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password field
+                    CustomTextField(
+                      label: 'Password',
+                      controller: _passwordController,
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Login button
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        return CustomButton(
+                          text: 'Login',
+                          onPressed: _handleLogin,
+                          isLoading: authProvider.isLoading,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Signup link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Don't have an account? "),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignupScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('Sign Up'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),

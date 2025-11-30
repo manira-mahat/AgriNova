@@ -25,7 +25,9 @@ class AuthProvider with ChangeNotifier {
 
       // Check if response has required fields
       if (response['token'] == null || response['user'] == null) {
-        _error = response['error']?.toString() ?? 'Registration failed - Invalid response from server';
+        _error =
+            response['error']?.toString() ??
+            'Registration failed - Invalid response from server';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -61,7 +63,9 @@ class AuthProvider with ChangeNotifier {
 
       // Check if response has required fields
       if (response['token'] == null || response['user'] == null) {
-        _error = response['error']?.toString() ?? 'Login failed - Invalid response from server';
+        _error =
+            response['error']?.toString() ??
+            'Login failed - Invalid response from server';
         _isLoading = false;
         notifyListeners();
         return false;
