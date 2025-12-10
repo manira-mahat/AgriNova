@@ -119,6 +119,8 @@ class CropRecommendationView(APIView):
             phosphorus=data['phosphorus'],
             potassium=data['potassium'],
             rainfall=data['rainfall'],
+            temperature=data.get('temperature'),
+            humidity=data.get('humidity'),
             district=data['district'],
             season=data['season'],
             notes=data.get('notes', '')

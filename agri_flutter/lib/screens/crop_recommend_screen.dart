@@ -21,6 +21,10 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   final _humidityController = TextEditingController();
   final _phController = TextEditingController();
   final _rainfallController = TextEditingController();
+  final _districtController = TextEditingController();
+
+  String _selectedSeason = 'Spring';
+  final List<String> _seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
 
   @override
   void dispose() {
@@ -31,6 +35,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
     _humidityController.dispose();
     _phController.dispose();
     _rainfallController.dispose();
+    _districtController.dispose();
     super.dispose();
   }
 
@@ -44,7 +49,8 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
         _temperatureController.text.isEmpty ||
         _humidityController.text.isEmpty ||
         _phController.text.isEmpty ||
-        _rainfallController.text.isEmpty) {
+        _rainfallController.text.isEmpty ||
+        _districtController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
@@ -57,8 +63,10 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
       "potassium": double.parse(_potassiumController.text),
       "temperature": double.parse(_temperatureController.text),
       "humidity": double.parse(_humidityController.text),
-      "ph": double.parse(_phController.text),
+      "ph_level": double.parse(_phController.text),
       "rainfall": double.parse(_rainfallController.text),
+      "district": _districtController.text,
+      "season": _selectedSeason,
     };
 
     final success = await cropProvider.getRecommendation(data);
@@ -160,6 +168,42 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 label: 'Rainfall (mm)',
                 controller: _rainfallController,
                 keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+
+              // District
+              CustomTextField(
+                label: 'District',
+                controller: _districtController,
+              ),
+              const SizedBox(height: 16),
+
+              // Season dropdown
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedSeason,
+                  decoration: const InputDecoration(
+                    labelText: 'Season',
+                    border: InputBorder.none,
+                  ),
+                  items: _seasons.map((season) {
+                    return DropdownMenuItem(value: season, child: Text(season));
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSeason = value!;
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 24),
 

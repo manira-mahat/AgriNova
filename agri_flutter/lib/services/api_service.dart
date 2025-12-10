@@ -4,10 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Simple API Service
 class ApiService {
-  // Change this to your computer's IP address for physical device
-  // For Android Emulator use: http://10.0.2.2:8000/api/
-  // For Web use: http://127.0.0.1:8000/api/
-  static const String baseUrl = "http://127.0.0.1:8000/api/";
+  // Using localhost with ADB reverse port forwarding
+  // This maps localhost:8000 in emulator to localhost:8000 on host
+  static const String baseUrl = "http://localhost:8000/api/";
 
   // Get saved token
   static Future<String?> getToken() async {

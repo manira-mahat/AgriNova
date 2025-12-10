@@ -9,6 +9,8 @@ class Recommendation {
   final double humidity;
   final double ph;
   final double rainfall;
+  final String district;
+  final String season;
 
   Recommendation({
     required this.id,
@@ -20,6 +22,8 @@ class Recommendation {
     required this.humidity,
     required this.ph,
     required this.rainfall,
+    this.district = '',
+    this.season = '',
   });
 
   factory Recommendation.fromJson(Map<String, dynamic> json) {
@@ -34,16 +38,24 @@ class Recommendation {
       }
     }
 
+    // Extract soil data from soil_data_details
+    Map<String, dynamic> soilData = {};
+    if (json.containsKey('soil_data_details')) {
+      soilData = json['soil_data_details'] as Map<String, dynamic>;
+    }
+
     return Recommendation(
       id: json['id'] ?? 0,
       cropName: cropName,
-      nitrogen: (json['nitrogen'] ?? 0).toDouble(),
-      phosphorus: (json['phosphorus'] ?? 0).toDouble(),
-      potassium: (json['potassium'] ?? 0).toDouble(),
-      temperature: (json['temperature'] ?? 0).toDouble(),
-      humidity: (json['humidity'] ?? 0).toDouble(),
-      ph: (json['ph'] ?? 0).toDouble(),
-      rainfall: (json['rainfall'] ?? 0).toDouble(),
+      nitrogen: (soilData['nitrogen'] ?? 0).toDouble(),
+      phosphorus: (soilData['phosphorus'] ?? 0).toDouble(),
+      potassium: (soilData['potassium'] ?? 0).toDouble(),
+      temperature: (soilData['temperature'] ?? 0).toDouble(),
+      humidity: (soilData['humidity'] ?? 0).toDouble(),
+      ph: (soilData['ph_level'] ?? 0).toDouble(),
+      rainfall: (soilData['rainfall'] ?? 0).toDouble(),
+      district: soilData['district'] ?? '',
+      season: soilData['season'] ?? '',
     );
   }
 }

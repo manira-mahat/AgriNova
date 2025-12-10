@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 
                   'phone_number', 'district', 'address', 'profile']
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'username']  # Username cannot be changed
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})

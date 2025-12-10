@@ -86,6 +86,8 @@ class CropResultScreen extends StatelessWidget {
               _buildInfoRow('Humidity', '${recommendation?.humidity ?? 0}%'),
               _buildInfoRow('pH Level', '${recommendation?.ph ?? 0}'),
               _buildInfoRow('Rainfall', '${recommendation?.rainfall ?? 0} mm'),
+              _buildInfoRow('District', recommendation?.district ?? 'N/A'),
+              _buildInfoRow('Season', recommendation?.season ?? 'N/A'),
               const SizedBox(height: 30),
 
               // Action buttons

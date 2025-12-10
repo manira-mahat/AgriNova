@@ -12,7 +12,7 @@ class SoilDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SoilData
         fields = ['id', 'user', 'ph_level', 'nitrogen', 'phosphorus', 'potassium', 
-                  'rainfall', 'district', 'season', 'test_date', 'notes']
+                  'rainfall', 'temperature', 'humidity', 'district', 'season', 'test_date', 'notes']
         read_only_fields = ['id', 'test_date']
 
 class RecommendationScoreSerializer(serializers.ModelSerializer):
@@ -48,6 +48,8 @@ class CropRecommendationRequestSerializer(serializers.Serializer):
     phosphorus = serializers.FloatField(min_value=0)
     potassium = serializers.FloatField(min_value=0)
     rainfall = serializers.FloatField(min_value=0)
+    temperature = serializers.FloatField(required=False, allow_null=True)
+    humidity = serializers.FloatField(min_value=0, max_value=100, required=False, allow_null=True)
     district = serializers.CharField(max_length=100)
     season = serializers.ChoiceField(choices=Crop.SEASONS)
     notes = serializers.CharField(required=False, allow_blank=True)

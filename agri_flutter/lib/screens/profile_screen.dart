@@ -58,6 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       "address": _addressController.text,
     };
 
+    // Note: username is read-only and not included in update
+
     final success = await authProvider.updateProfile(data);
 
     if (success && mounted) {
@@ -164,11 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
 
               // Address
-              CustomTextField(
-                label: 'Address',
-                controller: _addressController,
-                maxLines: 3,
-              ),
+              CustomTextField(label: 'Address', controller: _addressController),
               const SizedBox(height: 24),
 
               // Update button

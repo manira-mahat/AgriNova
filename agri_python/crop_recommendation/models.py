@@ -23,11 +23,10 @@ class Crop(models.Model):
     
     # Growing season
     SEASONS = [
-        ('spring', 'Spring'),
-        ('summer', 'Summer'),
-        ('monsoon', 'Monsoon'),
-        ('autumn', 'Autumn'),
-        ('winter', 'Winter'),
+        ('Spring', 'Spring'),
+        ('Summer', 'Summer'),
+        ('Autumn', 'Autumn'),
+        ('Winter', 'Winter'),
     ]
     suitable_seasons = models.CharField(max_length=200, help_text="Comma-separated seasons")
     
@@ -57,6 +56,8 @@ class SoilData(models.Model):
     phosphorus = models.FloatField(help_text="Phosphorus content (mg/kg)")
     potassium = models.FloatField(help_text="Potassium content (mg/kg)")
     rainfall = models.FloatField(help_text="Annual rainfall (mm)")
+    temperature = models.FloatField(help_text="Temperature (°C)", null=True, blank=True)
+    humidity = models.FloatField(help_text="Humidity (%)", null=True, blank=True)
     
     # Location and season
     district = models.CharField(max_length=100)
