@@ -20,6 +20,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _districtController = TextEditingController();
   final _addressController = TextEditingController();
 
+  bool _isEditing = false;
+
   @override
   void initState() {
     super.initState();
@@ -63,8 +65,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final success = await authProvider.updateProfile(data);
 
     if (success && mounted) {
+      setState(() {
+        _isEditing = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        SnackBar(
+          content: const Text('Profile updated successfully!'),
+          backgroundColor: Colors.green[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,56 +140,162 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               const SizedBox(height: 30),
 
-              // First Name
-              CustomTextField(
-                label: 'First Name',
-                controller: _firstNameController,
-              ),
-              const SizedBox(height: 16),
-
-              // Last Name
-              CustomTextField(
-                label: 'Last Name',
-                controller: _lastNameController,
-              ),
+              // Full Name (First + Last)
+              ...(_isEditing
+                  ? [
+                      CustomTextField(
+                        label: 'First Name',
+                        controller: _firstNameController,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        label: 'Last Name',
+                        controller: _lastNameController,
+                      ),
+                    ]
+                  : [
+                      _buildInfoRow(
+                        'Full Name',
+                        '${_firstNameController.text} ${_lastNameController.text}'
+                            .trim(),
+                        icon: Icons.person_outline,
+                      ),
+                    ]),
               const SizedBox(height: 16),
 
               // Email
-              CustomTextField(
-                label: 'Email',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-              ),
+              _isEditing
+                  ? CustomTextField(
+                      label: 'Email',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                    )
+                  : _buildInfoRow(
+                      'Email',
+                      _emailController.text,
+                      icon: Icons.email_outlined,
+                    ),
               const SizedBox(height: 16),
 
               // Phone Number
-              CustomTextField(
-                label: 'Phone Number',
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-              ),
+              _isEditing
+                  ? CustomTextField(
+                      label: 'Phone Number',
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                    )
+                  : _buildInfoRow(
+                      'Phone Number',
+                      _phoneController.text,
+                      icon: Icons.phone_outlined,
+                    ),
               const SizedBox(height: 16),
 
               // District
-              CustomTextField(
-                label: 'District',
-                controller: _districtController,
-              ),
+              _isEditing
+                  ? CustomTextField(
+                      label: 'District',
+                      controller: _districtController,
+                    )
+                  : _buildInfoRow(
+                      'District',
+                      _districtController.text,
+                      icon: Icons.location_on_outlined,
+                    ),
               const SizedBox(height: 16),
 
               // Address
-              CustomTextField(label: 'Address', controller: _addressController),
+              _isEditing
+                  ? CustomTextField(
+                      label: 'Address',
+                      controller: _addressController,
+                    )
+                  : _buildInfoRow(
+                      'Address',
+                      _addressController.text,
+                      icon: Icons.home_outlined,
+                    ),
               const SizedBox(height: 24),
 
-              // Update button
-              CustomButton(
-                text: 'Update Profile',
-                onPressed: _updateProfile,
-                isLoading: authProvider.isLoading,
-              ),
+              // Edit/Update button
+              _isEditing
+                  ? CustomButton(
+                      text: 'Update Profile',
+                      onPressed: _updateProfile,
+                      isLoading: authProvider.isLoading,
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _isEditing = true;
+                        });
+                      },
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit Profile'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, {IconData? icon}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: Colors.green[700], size: 24),
+            const SizedBox(width: 16),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value.isEmpty ? 'Not set' : value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
