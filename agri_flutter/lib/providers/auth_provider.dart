@@ -13,6 +13,22 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isLoggedIn => _user != null;
+  bool get isAuthenticated => _user != null;
+
+  // Check if user is already authenticated
+  Future<void> checkAuthStatus() async {
+    try {
+      final token = await ApiService.getToken();
+      if (token != null && token.isNotEmpty) {
+        // Try to load user profile
+        _user = await AuthService.getProfile();
+      }
+    } catch (e) {
+      // Token is invalid or expired
+      _user = null;
+      await ApiService.removeToken();
+    }
+  }
 
   // Register new user
   Future<bool> register(Map<String, dynamic> data) async {

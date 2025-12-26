@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/custom_textfield.dart';
 import '../widgets/custom_button.dart';
 import 'signup_screen.dart';
-import 'dashboard_screen.dart';
+import 'home_screen.dart';
 
 // Simple Login Screen
 class LoginScreen extends StatefulWidget {
@@ -47,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

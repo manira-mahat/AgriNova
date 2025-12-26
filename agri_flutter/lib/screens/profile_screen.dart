@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/custom_textfield.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/info_card.dart';
+import '../widgets/confirmation_dialog.dart';
+import '../utils/helpers.dart';
+import 'login_screen.dart';
 
 // Simple Profile Screen
 class ProfileScreen extends StatefulWidget {
@@ -68,21 +72,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isEditing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Profile updated successfully!'),
-          backgroundColor: Colors.green[700],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      SnackBarUtils.showSuccess(context, 'Profile updated successfully!');
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Failed to update profile'),
-        ),
+      SnackBarUtils.showError(
+        context,
+        authProvider.error ?? 'Failed to update profile',
       );
     }
   }
@@ -154,10 +148,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ]
                   : [
-                      _buildInfoRow(
-                        'Full Name',
-                        '${_firstNameController.text} ${_lastNameController.text}'
-                            .trim(),
+                      InfoCard(
+                        label: 'Full Name',
+                        value:
+                            '${_firstNameController.text} ${_lastNameController.text}'
+                                .trim(),
                         icon: Icons.person_outline,
                       ),
                     ]),
@@ -170,9 +165,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                     )
-                  : _buildInfoRow(
-                      'Email',
-                      _emailController.text,
+                  : InfoCard(
+                      label: 'Email',
+                      value: _emailController.text,
                       icon: Icons.email_outlined,
                     ),
               const SizedBox(height: 16),
@@ -184,9 +179,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                     )
-                  : _buildInfoRow(
-                      'Phone Number',
-                      _phoneController.text,
+                  : InfoCard(
+                      label: 'Phone Number',
+                      value: _phoneController.text,
                       icon: Icons.phone_outlined,
                     ),
               const SizedBox(height: 16),
@@ -197,9 +192,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: 'District',
                       controller: _districtController,
                     )
-                  : _buildInfoRow(
-                      'District',
-                      _districtController.text,
+                  : InfoCard(
+                      label: 'District',
+                      value: _districtController.text,
                       icon: Icons.location_on_outlined,
                     ),
               const SizedBox(height: 16),
@@ -210,9 +205,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       label: 'Address',
                       controller: _addressController,
                     )
-                  : _buildInfoRow(
-                      'Address',
-                      _addressController.text,
+                  : InfoCard(
+                      label: 'Address',
+                      value: _addressController.text,
                       icon: Icons.home_outlined,
                     ),
               const SizedBox(height: 24),
@@ -244,58 +239,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
+
+              const SizedBox(height: 16),
+
+              // Logout button
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final shouldLogout = await ConfirmationDialog.show(
+                    context: context,
+                    title: 'Logout',
+                    content: 'Are you sure you want to logout?',
+                    confirmText: 'Logout',
+                    confirmColor: Colors.red,
+                  );
+
+                  if (shouldLogout == true && mounted) {
+                    await authProvider.logout();
+                    if (mounted) {
+                      NavigationUtils.navigateAndRemoveUntil(
+                        context,
+                        const LoginScreen(),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red[700],
+                  side: BorderSide(color: Colors.red[700]!),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, {IconData? icon}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: Colors.green[700], size: 24),
-            const SizedBox(width: 16),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value.isEmpty ? 'Not set' : value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

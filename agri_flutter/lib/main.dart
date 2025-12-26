@@ -4,7 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/crop_provider.dart';
 import 'providers/market_provider.dart';
 import 'providers/user_provider.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const LoginScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
