@@ -80,23 +80,23 @@ WSGI_APPLICATION = 'agrinova_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# For development, using SQLite. In production, switch to MySQL
+# MySQL Configuration
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'agrinova_db',
+        'USER': 'root',
+        'PASSWORD': '',  # Update with your MySQL password
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
-# Uncomment below for MySQL configuration
+# SQLite (for development/testing)
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'agrinova_db',
-#         'USER': 'your_mysql_user',
-#         'PASSWORD': 'your_mysql_password',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
 
