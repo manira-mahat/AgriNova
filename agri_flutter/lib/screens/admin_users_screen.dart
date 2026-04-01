@@ -23,6 +23,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final users = userProvider.users;
+    final messenger = ScaffoldMessenger.of(context);
 
     return Scaffold(
       backgroundColor: Colors.green[50],
@@ -80,7 +81,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               )
             : ListView.builder(
                 itemCount: users.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (itemContext, index) {
                   final user = users[index];
                   return Card(
                     elevation: 2,
@@ -127,7 +128,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                               onPressed: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,
-                                  builder: (context) => AlertDialog(
+                                  builder: (dialogContext) => AlertDialog(
                                     title: const Text('Delete User'),
                                     content: Text(
                                       'Are you sure you want to delete ${user.username}?',
@@ -135,14 +136,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
-                                            Navigator.pop(context, false),
+                                            Navigator.pop(dialogContext, false),
                                         child: const Text('Cancel'),
                                       ),
                                       ElevatedButton(
                                         onPressed: () =>
-                                            Navigator.pop(context, true),
+                                            Navigator.pop(dialogContext, true),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.red,
+                                          foregroundColor: Colors.white,
                                         ),
                                         child: const Text('Delete'),
                                       ),
@@ -150,17 +152,15 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                   ),
                                 );
 
-                                if (confirm == true && mounted) {
+                                if (confirm == true) {
                                   await userProvider.deleteUser(user.id);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'User deleted successfully!',
-                                        ),
-                                      ),
-                                    );
-                                  }
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      backgroundColor: Colors.green,
+                                      content: Text('User deleted successfully!'),
+                                    ),
+                                  );
                                 }
                               },
                             ),
