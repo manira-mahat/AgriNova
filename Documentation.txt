@@ -1,323 +1,720 @@
-1. Introduction 
-Agriculture in Nepal is still largely guided by traditional practices, where farmers rely on 
-experience and local knowledge to make decisions about what crops to plant, how much 
-fertilizer to apply, and when to harvest. While this approach has been passed down through 
-generations, it often leads to unpredictable outcomes such as poor yields, crop failures, and 
-financial instability. Rapidly changing weather conditions, limited access to scientific 
-guidance, and fluctuating market prices make farming even more uncertain, leaving many 
-farmers vulnerable to risk. 
-To address these challenges, AgriNova has been developed as a mobile-based digital 
-advisory system that helps farmers make informed, data-driven decisions. The system is 
-designed to be simple and farmer-friendly, ensuring that even those with limited technical 
-knowledge can benefit from it. Farmers can enter details about their soil, such as pH levels, 
-nutrient content (NPK), rainfall, and district. Based on this input, AgriNova generates 
-personalized recommendations for suitable crops and stores the results for future reference. 
-The platform also provides basic information about crop requirements, allowing farmers to 
-plan their cultivation practices more efficiently. 
-The strength of AgriNova lies in its use of the Decision Tree algorithm, which analyzes 
-soil conditions and rainfall data to recommend the most suitable crops for cultivation. The 
-algorithm evaluates parameters such as soil pH, nitrogen, phosphorus, potassium, and 
-rainfall to classify the input data and predict the best crop option. This scientific approach 
-ensures that farmers make decisions based on objective data rather than guesswork or 
-tradition. Additionally, the system incorporates a Nearest Market Finder module, which 
-helps farmers identify and locate the closest agricultural markets to sell their produce 
-efficiently. By combining intelligent crop recommendation with accessible market 
-information in a single mobile platform, AgriNova empowers farmers with reliable 
-guidance, reduces risks, and promotes more productive and sustainable farming practices 
-across Nepal across Nepal. 
-1 
-Problem Statement 
-Managing agriculture in Nepal through traditional practices presents several challenges for 
-farmers. Crop selection is often based on guesswork or local tradition rather than scientific 
-data, which can lead to poor yield or crop failure. Fertilizer application is frequently 
-imbalanced, either excessive or insufficient, resulting in soil degradation and reduced 
-productivity. Farmers also struggle to plan farming activities due to unpredictable weather, 
-relying on outdated information or informal sources that may not be reliable. 
-Farmers often lack access to proper agricultural guidance and modern decision-support 
-systems that could help them choose suitable crops based on their specific soil and 
-environmental conditions. As a result, farming outcomes remain uncertain, and the 
-potential for higher productivity is not fully realized. Additionally, the absence of a 
-centralized system to store and analyze soil data limits the ability to make consistent, data
-driven decisions in future farming cycles. 
-These challenges highlight the urgent need for a systematic, digital, and data-driven 
-advisory tool that can assist farmers with crop planning and selection. Such a system, like 
-AgriNova, can use soil parameters such as pH level, nitrogen, phosphorus, potassium, and 
-rainfall to recommend the most suitable crop for cultivation. By providing scientific and 
-data-based insights, this solution will help improve agricultural productivity, enhance 
-sustainability, and empower farmers to make informed decisions that reduce risks and 
-improve yields. 
-Objectives 
-The objectives are: 
- To provide farmers with personalized crop recommendations. 
- To help farmers make data-driven agricultural decisions based on soil and rainfall 
-data. 
- To help farmers find the nearest markets to sell their produce. 
-2. Methodology 
-a) Requirement Identification 
-2 
-i. 
-Study of Existing System 
-Several digital agriculture platforms and advisory systems have been developed to support 
-farmers by providing information and recommendations. However, most existing systems 
-focus on specific areas rather than offering complete, data-driven solutions. A brief 
-overview of some well-known platforms is as follows: 
- Plantix: A mobile app that provides pest and disease detection through image 
-recognition. While useful, it lacks market price prediction and localized crop 
-recommendations. 
- Krishi Guru: Provides general agricultural knowledge in Nepal but does not integrate 
-intelligent algorithms for personalized recommendations. 
- AgriApp: Offers weather updates, crop practices, and Agri-input information but has 
-limited decision-making features and is not tailored for Nepali farmers. 
-Identified Gaps: 
-While these platforms assist farmers in various aspects, they generally do not address the 
-following limitations: 
- Absence of data-driven crop recommendation systems based on soil properties and 
-rainfall data. 
- Limited implementation of intelligent algorithms such as Decision Tree for 
-decision-making. 
-These limitations highlight the need for a customized and data-driven digital advisory 
-system such as AgriNova, which uses the Decision Tree algorithm to provide accurate and 
-scientific crop recommendations. By focusing on simplicity, reliability, and practical 
-application, AgriNova aims to assist farmers in making informed, data-supported decisions 
-to enhance productivity and promote sustainable farming practices. 
-ii. 
-Literature Review 
-Decision tree methods have been widely adopted for classification tasks in many domains 
-due to their interpretability and ease of implementation. Quinlan’s seminal work on 
-induction of decision trees established practical algorithms for generating trees from 
-labeled data, enabling clear rule-based decisions and fast inference [1]. For AgriNova, 
-Decision Trees provide a transparent way to recommend crops: trained on soil and climatic 
-attributes, a tree can map combinations of pH, NPK levels, rainfall and season into 
-actionable crop choices that farmers can understand and trust. 
-3 
-Clustering techniques, in particular the K-Means algorithm introduced by MacQueen, are 
-foundational for grouping similar multivariate observations efficiently [2]. K-Means is well 
-suited to partition soil nutrient profiles (N, P, K) into clusters indicating types of nutrient 
-deficiency or balance. In AgriNova, applying K-Means to soil test results enables the 
-system to recommend fertilizer types and dosages by matching a farmer’s soil profile to the 
-nearest cluster prototype and its associated corrective action. 
-Regression analysis offers straightforward and statistically grounded methods for 
-forecasting continuous variables. Draper and Smith’s presentation of applied regression 
-techniques highlights model fitting, diagnostics, and prediction—practical tools for short
-term forecasting tasks [3]. For weather forecasting in AgriNova, linear regression (or 
-multivariate linear models) can provide efficient, interpretable short-horizon estimates of 
-temperature or rainfall when trained on local historical observations and recent API
-provided data. 
-Time-series smoothing and forecasting methods, such as the moving average and the Box
-Jenkins family of models, are effective for detecting trends and short-term patterns in noisy 
-data [4]. The moving average technique can smooth daily market prices to reveal the 
-underlying trend and reduce volatility, which is exactly what AgriNova requires to present 
-farmers with clearer short-term price expectations and to signal likely price rises or falls. 
-Graph algorithms are central to routing and network problems. Dijkstra’s shortest path 
-algorithm remains a standard, provably optimal method to compute minimum-cost routes 
-on weighted graphs [5]. In AgriNova, modeling roads and market locations as a weighted 
-graph (weights = distance/time/cost) allows Dijkstra’s algorithm to compute the most 
-efficient route from a farmer’s village to the nearest or best market, improving logistics and 
-reducing transport costs. 
-Instance-based classification, exemplified by the k-nearest neighbors (KNN) rule described 
-by Cover and Hart, is useful when labeled examples exist and model interpretability is 
-important [6]. KNN’s simplicity and effectiveness for image-based tasks make it a 
-reasonable choice for an initial pest/disease detection module in AgriNova: by extracting 
-features from leaf images and comparing them to a labeled dataset, the system can classify 
-likely diseases and suggest treatments, with the option to replace or augment KNN with 
-more advanced CNN models later. 
-4 
-iii. 
-Requirement Analysis 
-For AgriNova to function effectively and provide reliable, user-friendly support to farmers, 
-it must address both functional and non-functional requirements. These requirements 
-ensure that the system not only delivers accurate crop and market recommendations but 
-also remains secure, scalable, and easy to use in real-world farming conditions. 
-Functional Requirements: 
- User Authentication: Farmers should be able to register, log in securely, and 
-manage their personal profiles. 
- Crop Recommendation: The system must provide crop suggestions based on soil 
-details (pH, NPK values), rainfall using Decision Tree algorithms. 
- Nearest Market Finder: The system will identify and display the nearest available 
-markets based on the farmer’s district or provided location. The feature will use 
-basic geolocation data and distance calculations to suggest the most accessible 
-selling points for agricultural produce. 
- Crud Operations:  Administrators should have access to add, update, view, and 
-delete crop datasets. Farmers should be able to input their soil data and view past 
-recommendations. 
- Data Storage: The system should store all user information, soil data, and 
-recommendation results in a MySQL database for future reference. 
- Mobile Accessibility: The application must be available as a mobile app built using 
-Flutter, providing a smooth and intuitive user experience . 
-Non-Functional Requirements: 
- Security: All user data and crop information must be securely stored and protected 
-from unauthorized access. 
- Performance: Recommendations should be generated quickly, ideally within two 
-seconds of user input. 
- Usability: The interface must be simple, clear, and easy to navigate for users with 
-limited technical experience. 
- Scalability: The system should support the future addition of new crops, 
-parameters, or analytical features as data availability increases. 
- Reliability: The algorithm’s recommendations should be consistent and accurate, 
-and the system should maintain stable performance during use. 
-5 
-b) Feasibility Study 
-i. 
-Technical Feasibility 
-The proposed system will utilize Flutter for developing a cross-platform mobile application 
-that runs smoothly. The backend services will be developed using Python (Django 
-framework), which will handle user authentication, data processing, communication with 
-the database, and execution of the Decision Tree algorithm. The MySQL database will be 
-used as the main data storage system to manage user details, soil inputs, crop 
-recommendations, and market data due to its high reliability, scalability, and ease of 
-integration with Django. 
-Since Flutter, Django, and MySQL are all open-source, stable, and well-documented 
-technologies, the development and deployment of the AgriNova system are technically 
-feasible. These technologies ensure smooth integration, easy maintenance, and low 
-development cost, making the project suitable for an individual student implementation 
-while maintaining strong performance and professional functionality. 
-ii. 
-Operational Feasibility 
-The system is designed to be simple and user-friendly, allowing both farmers and 
-administrators to use the application without technical expertise. The interface will enable 
-farmers to easily input soil parameters and receive instant crop recommendations generated 
-by the Decision Tree algorithm. Additionally, the system will include a Nearest Market 
-Finder feature that allows farmers to locate the closest agricultural markets based on their 
-district or entered location. Administrators can efficiently manage crop and market datasets 
-through built-in CRUD operations. The straightforward design ensures smooth operation, 
-easy adoption, and minimal need for training or external support. 
-iii. 
-Economic Feasibility 
-The development of AgriNova remains cost-effective as it uses only open-source 
-technologies such as Flutter, Django, and MySQL, which do not require expensive licenses. 
-The system can operate on standard mobile devices with minimal server requirements, 
-making it affordable to deploy and maintain. Since the project architecture supports 
-scalability, new modules such as market data or additional crop information can be added 
-in the future at a low cost. This ensures that the system remains sustainable, economical, 
-and beneficial for long-term use in the agricultural sector. 
-6 
-c) High-Level Design of System 
-i. 
-Methodology 
-The AgriNova system will be developed using the Agile methodology, which emphasizes 
-iterative development, continuous feedback, and flexibility. The project will be divided into 
-key modules such as user authentication, crop recommendation using the Decision Tree 
-algorithm, nearest market finder, and CRUD operations for managing crop and market data. 
-Each module will be designed, implemented, and tested in short development cycles to 
-ensure accuracy, usability, and smooth performance. This iterative approach allows for 
-quick updates, incorporation of user feedback, and easy integration of new features, 
-ensuring that AgriNova remains efficient, user-friendly, and adaptable for future 
-enhancements. 
-Figure 1: Agile Methodology 
-7 
-ii. 
-Flow Chart 
-Figure 2 Admin and User Flow Chart 
-iii. 
-Working Mechanism 
-Frontend Design: The AgriNova mobile application will be developed using Flutter. The 
-interface will be clean, intuitive, and user-friendly, allowing farmers to register, log in, 
-input soil parameters such as pH, nitrogen, phosphorus, potassium, and rainfall, and view 
-crop recommendations generated by the system. Additionally, the application will include 
-a Nearest Market Finder feature that lets farmers view nearby agricultural markets based 
-on their district or entered location. The advisory dashboard will present crop 
-recommendations and market results in a clear and accessible format. 
-Backend Development: The backend will be developed using Python (Django 
-framework), which will handle all server-side logic and communication between the mobile 
-app and the database. It will process farmer inputs and execute the Decision Tree algorithm 
-to determine the most suitable crop based on soil and rainfall data. The backend will also 
-manage Nearest Market Finder operations, which calculate and display the closest 
-agricultural markets based on the farmer’s district or entered location. In addition, Django 
-will handle user authentication, data validation, and CRUD (Create, Read, Update, Delete) 
-operations for both crop and market datasets. Its robust architecture ensures secure data 
-8 
-handling, efficient communication with Flutter, and seamless integration with the MySQL 
-database. 
-Database Design: A MySQL database will store structured data such as user details, soil 
-inputs, crop datasets, market information, and crop recommendation results. The database 
-will support fast querying, secure data storage, and reliable access for both farmers and 
-administrators. It will also ensure efficient management of crop and market records, 
-enabling accurate recommendations and easy retrieval of nearby market details for farmers. 
-iv. 
-Algorithms 
-The AgriNova uses two algorithms to assist farmers in making informed agricultural 
-decisions — the Decision Tree algorithm for personalized crop recommendations and the 
-Haversine formula for finding the nearest agricultural market. Together, these algorithms 
-help farmers choose the best crops for their soil conditions and locate nearby markets to 
-sell their produce efficiently. 
-a) Decision Tree 
-The Decision Tree algorithm is used to recommend the most suitable crop based on soil 
-conditions, rainfall, and season. It works by dividing the input data into decision points 
-(e.g., soil pH, rainfall level) and reaching the best possible crop at the end of the path. 
-Working Mechanism: 
- Collect soil features such as pH, nitrogen, phosphorus, potassium, and rainfall. 
- Compare these values against thresholds at each decision node. 
- Reach the leaf node that suggests the best crop for the farmer. 
-Mathematical Formulation: 
- Entropy (impurity measure): 
-�
-�
- 𝐇(𝐒) = −∑𝑝𝑖𝐥𝐨𝐠𝟐𝑝𝑖
- 𝒊=𝟏
-  Information Gain (to select the best split): 
-�
-�𝐆(𝐒,𝐀) = 𝐇(𝐒)− ∑ |𝑺𝑽|
- 𝒗∈𝑽𝒂𝒍𝒖𝒆𝒔(𝑨)
- |𝑺|
- 𝑯(𝑺𝑽)
- 9 
-b) Haversine Formula (Nearest Market Finder) 
-The Haversine formula is used to calculate the distance between the farmer’s location and 
-different market locations using their latitude and longitude coordinates. This helps 
-identify the nearest market for selling agricultural produce efficiently. 
-Working Mechanism: 
- The farmer inputs their district or location. 
- The system retrieves the coordinates (latitude and longitude) of all available 
-markets from the database. 
- The Haversine formula is applied to calculate the great-circle distance between the 
-farmer and each market. 
- The system displays the market with the shortest distance as the nearest one. 
-Mathematical Formulation: 
-�
-� =2𝑟.arcsin⁡(√𝑠𝑖𝑛2 (∆𝑙𝑎𝑡
- 2
- where: 
-) +
-  d = distance between two locations 
- r = radius of the Earth (≈ 6371 km) 
- 𝑙𝑎𝑡1,𝑙𝑎𝑡2= latitudes of the two points 
- 𝑙𝑜𝑛1,𝑙𝑜𝑛2= longitudes of the two points 
-cos⁡(𝑙𝑎𝑡1)cos⁡(𝑙𝑎𝑡2)𝑠𝑖𝑛2(∆𝑙𝑜𝑛
- 2
- )) 
-10 
-Gantt Chart 
-Figure 3 Gantt Chart 
-3. Expected Outcome 
- Farmers will be able to input soil details such as pH, nitrogen, phosphorus, 
-potassium, and rainfall through a simple mobile application. 
- The system will automatically recommend the most suitable crop using the Decision 
-Tree algorithm based on the entered soil parameters. 
- Farmers will be able to find the nearest agricultural market using the Haversine 
-formula, helping them sell their produce more efficiently. 
- Administrators will be able to manage crop and market datasets as well as user 
-records through CRUD operations efficiently. 
- The application will provide an easy-to-use interface for farmers to view crop 
-recommendations, nearest market results, and past records. 
- All data will be securely stored and managed in the MySQL database, ensuring 
-accuracy and reliability. 
- The system will help farmers make data-driven agricultural decisions, reduce the 
-risk of crop failure, and improve productivity. 
- The combination of Flutter, Python (Django), and MySQL will result in a scalable, 
-maintainable, and cost-effective digital agriculture advisory tool. 
-11 
-7. References 
-[1]  J. R. Quinlan, “Induction of decision trees,” Machine Learning, vol. 1, no. 1, pp. 
-81–106, 1986. 
-[2]  J. MacQueen, “Some methods for classification and analysis of multivariate 
-observations,” in Proc. 5th Berkeley Symp. Mathematical Statistics and Probability, 
-Berkeley, CA, USA, 1967, pp. 281–297. 
-[3]  N. R. Draper and H. Smith, Applied Regression Analysis, 3rd ed. New York, NY, 
-USA: Wiley, 1998. 
-[4]  G. E. P. Box and G. M. Jenkins, Time Series Analysis: Forecasting and Control, 
-San Francisco, CA, USA: Holden-Day, 1970. 
-[5]  E. W. Dijkstra, “A note on two problems in connexion with graphs,” Numerische 
-Mathematik, vol. 1, pp. 269–271, 1959. 
-[6]  T. Cover and P. Hart, “Nearest neighbor pattern classification,” IEEE Transactions 
-on Information Theory, vol. 13, no. 1, pp. 21–27, Jan. 1967. 
-12 
+ABSTRACT
+AgriNova is a mobile-centric digital advisory system developed to support practical
+agricultural decision-making in Nepal. The system addresses frequent challenges in
+traditional farming such as uncertain crop selection, inconsistent use of soil data,
+and difficulty finding accessible agricultural markets. The platform integrates two
+core intelligent modules: a crop recommendation engine and a nearest market finder.
+
+The backend is implemented in Django REST Framework with token-based
+authentication and modular services for user management, crop recommendation,
+and market search. The frontend is implemented in Flutter and connects to REST APIs
+for registration, profile handling, recommendation requests, recommendation history,
+market search, and admin operations. Crop recommendation is generated using a
+Decision Tree based approach over soil parameters including pH, nitrogen,
+phosphorus, potassium, rainfall, and season. Nearest market discovery is performed
+using the Haversine formula over latitude/longitude coordinates.
+
+The system currently supports role-based workflows for both users and administrators.
+Users can submit soil data, receive ranked recommendations, track recommendation
+history, and find nearby markets. Administrators can manage users, crop records,
+markets, and market prices through protected endpoints. The solution is designed in
+an iterative Agile workflow, allowing incremental delivery and improvement.
+
+By combining explainable recommendation logic and location-aware market guidance
+in one platform, AgriNova contributes to better farm planning, improved accessibility
+to market channels, and more reliable data-driven decisions.
+
+Keywords: AgriNova, Agriculture Advisory, Decision Tree, Haversine Formula,
+Django REST Framework, Flutter, Crop Recommendation, Market Finder,
+Token Authentication, Agile Methodology.
+
+
+ACKNOWLEDGEMENT
+I would like to express my sincere gratitude to all individuals and institutions who
+supported me throughout the development of AgriNova.
+
+I extend my heartfelt thanks to my project supervisor, Mr. Bijay Shrestha, for his
+continuous guidance, constructive feedback, and technical suggestions during all
+phases of this project.
+
+I am equally thankful to NIST College for providing the academic environment,
+resources, and encouragement required to complete this work.
+
+I also thank all faculty members and non-teaching staff of the BCA department for
+their assistance, and my peers and family members for their motivation and support.
+
+
+TABLE OF CONTENTS
+SUPERVISOR'S RECOMMENDATION
+LETTER OF APPROVAL
+ABSTRACT
+ACKNOWLEDGEMENT
+LIST OF ABBREVIATIONS
+LIST OF FIGURES
+LIST OF TABLES
+CHAPTER 1: INTRODUCTION
+1.1 Introduction
+1.2 Problem Statement
+1.3 Objectives
+1.4 Scope and Limitation
+1.5 Development Methodology
+1.6 Report Organization
+CHAPTER 2: BACKGROUND STUDY AND LITERATURE REVIEW
+2.1 Background Study
+2.2 Literature Review
+CHAPTER 3: SYSTEM ANALYSIS AND DESIGN
+3.1 System Analysis
+3.1.1 Requirement Analysis
+3.1.2 Feasibility Analysis
+3.1.3 System Modeling
+3.2 System Design
+3.2.1 Architectural Design
+3.2.2 Database Design
+3.3 Algorithm Details
+CHAPTER 4: IMPLEMENTATION AND TESTING
+4.1 Implementation
+4.1.1 Tools Used
+4.1.2 Module Implementation Details
+4.2 Testing
+4.2.1 Unit Testing
+4.2.2 System Testing
+CHAPTER 5: CONCLUSION AND FUTURE RECOMMENDATIONS
+5.1 Conclusion
+5.2 Lessons Learned / Outcome
+5.3 Future Recommendations
+APPENDICES
+REFERENCES
+
+
+LIST OF ABBREVIATIONS
+API   Application Programming Interface
+BCA   Bachelor in Computer Application
+CRUD  Create, Read, Update, Delete
+DRF   Django REST Framework
+GPS   Global Positioning System
+HTTP  Hypertext Transfer Protocol
+JSON  JavaScript Object Notation
+ML    Machine Learning
+NPK   Nitrogen, Phosphorus, Potassium
+OOP   Object Oriented Programming
+UI    User Interface
+UML   Unified Modeling Language
+
+
+LIST OF FIGURES
+Figure 1.1: Agile Methodology
+Figure 3.1: High-Level System Architecture
+Figure 3.2: User and Admin Flow Diagram
+Figure 3.3: Database Relationship Overview
+Figure 3.4: API Module Interaction Diagram
+Figure 3.5: Recommendation Workflow
+Figure 3.6: Nearest Market Finder Workflow
+
+
+LIST OF TABLES
+Table 3.1: Functional Requirements Summary
+Table 3.2: Non-Functional Requirements Summary
+Table 4.1: Unit Test Cases for Authentication APIs
+Table 4.2: Unit Test Cases for Crop Recommendation
+Table 4.3: Unit Test Cases for Market Finder
+Table 4.4: System Test Cases for End-to-End Workflow
+
+
+CHAPTER 1: INTRODUCTION
+
+1.1 Introduction
+AgriNova is an advanced digital agriculture advisory platform designed to improve farming
+decision-making for both individual farmers and agricultural administrators. The system is
+developed to provide a practical and easy-to-use environment where users can make
+evidence-based choices about crop planning and market access instead of depending only
+on traditional experience or guesswork.
+
+For users, the platform provides a clear workflow that starts from account access and data
+entry. Farmers can register, log in, manage their profile, and submit soil-related parameters
+such as pH, nitrogen, phosphorus, potassium, rainfall, district, and season. Based on these
+inputs, the system generates ranked crop recommendations using the Decision Tree based
+recommendation engine. Users can also review previous recommendation records, which
+supports continuity in planning across multiple farming cycles.
+
+In addition to crop recommendation, AgriNova includes a nearest market finder module.
+This module allows users to provide location coordinates and obtain nearby agricultural
+markets ordered by distance. By combining crop advisory and market discovery in one
+system, AgriNova helps reduce the gap between production planning and produce selling,
+which is a common challenge in practical farming workflows.
+
+Once authenticated, users can interact with a complete set of advisory services from a
+single mobile application interface. The system stores recommendation history and market
+search history for later reference, helping users compare outcomes and make more informed
+future decisions. For new users and existing users alike, this creates a structured advisory
+experience rather than isolated one-time calculations.
+
+The system is organized into two major operational roles: User and Admin. In the User
+role, farmers can perform profile management, soil-data submission, recommendation
+retrieval, and nearest market search. In the Admin role, authorized administrators can
+manage core datasets through CRUD operations, including users, crop records, market
+records, and market prices. The platform follows a client-server architecture with Flutter on
+the client side and Django REST Framework on the server side, enabling secure token-based
+authentication, role-based authorization, and reliable API-driven communication.
+
+1.2 Problem Statement
+In many farming communities, crop decisions are still made mainly from past experience,
+local assumptions, or informal advice. While traditional knowledge remains valuable, it is
+often insufficient when soil quality differs from one location to another or when weather and
+market conditions change quickly. As a result, farmers may cultivate crops that are not well
+matched to their soil profile, which can reduce yield and increase production risk.
+
+Resource planning challenges further increase this problem. Without a structured
+data-supported approach, fertilizer and input use can become imbalanced, either excessive
+or insufficient, affecting both cost and soil health. In addition, many farmers face difficulty
+in identifying suitable nearby markets at the right time, which can lead to delayed sales,
+higher transport burden, and reduced profitability.
+
+Another major issue is the lack of a unified digital workflow that connects crop advisory
+with market accessibility and historical record-keeping. When recommendation records and
+market search history are not preserved in one system, users cannot easily compare past
+decisions or improve future planning. This creates repeated uncertainty in each farming
+cycle.
+
+Therefore, a practical and mobile-friendly advisory platform is required to automate
+soil-based crop recommendation, provide location-aware nearest market guidance, and
+maintain decision history in a secure and structured way. AgriNova is developed to address
+these exact needs and to support more reliable, data-driven agricultural planning.
+
+1.3 Objectives
+The objectives of this project are:
+To provide personalized crop recommendations based on soil and seasonal data.
+To help farmers find the nearest agricultural markets quickly.
+To maintain recommendation and market search history for better future decisions.
+
+1.4 Scope and Limitation
+
+1.4.1 Scope
+This project involves developing a mobile-based agriculture advisory system using modern,
+open-source technologies, including Flutter for the frontend, Django REST Framework for
+the backend, and SQLite in the current development setup for data storage. The system
+enables users to register, log in, manage profiles, submit soil and seasonal parameters,
+receive personalized crop recommendations, and find nearby agricultural markets using
+location-based search. The platform also maintains recommendation and market-search
+history so users can review previous records for future planning. Additionally, the system
+includes an admin management module that allows authorized administrators to manage
+users, crop records, market records, and market price information through role-protected
+CRUD operations.
+
+1.4.2 Limitations
+The system's performance may be impacted under high traffic conditions because the
+current implementation is primarily focused on core functionality and does not yet include
+advanced production-level optimization and scaling strategies.
+The project currently uses a development-oriented setup, and production hardening features
+such as strict CORS policies, dedicated deployment architecture, and advanced forecasting
+modules are not included in this version.
+
+1.5 Development Methodology
+The project follows Agile methodology with iterative implementation and testing.
+Development is organized in modules and improved through incremental feedback loops.
+
+1.6 Report Organization
+This report is organized chapter-wise:
+- Chapter 1 introduces the project, objectives, and scope.
+- Chapter 2 presents background and literature review.
+- Chapter 3 explains system analysis, design, and algorithms.
+- Chapter 4 describes implementation and testing.
+- Chapter 5 provides conclusion, outcomes, and future recommendations.
+
+
+CHAPTER 2: BACKGROUND STUDY AND LITERATURE REVIEW
+
+2.1 Background Study
+Digital agriculture advisory systems are technology platforms that help farmers improve
+planning by using data rather than only traditional assumptions. In Nepal, adoption of
+mobile-based agriculture support has gradually increased with wider smartphone access,
+better internet connectivity, and growing interest in digital services in rural and semi-urban
+areas. Several platforms and services now provide guidance related to farming practices,
+weather updates, and agricultural information, helping users access support from their
+devices instead of relying only on manual channels.
+
+In practical use, however, many available solutions focus on only one part of the farming
+workflow. Some tools provide general advisory content but do not offer personalized crop
+recommendation based on soil parameters. Others provide market-related information but
+do not connect it directly with crop planning decisions. Because of this separation, farmers
+often need multiple tools to complete one decision cycle, from selecting a suitable crop to
+finding a nearby market for selling produce.
+
+AgriNova is developed to address this gap through an integrated advisory approach. The
+system combines a Decision Tree based crop recommendation module and a location-based
+nearest market finder in a single account-based platform. Users can submit soil and seasonal
+data, receive ranked crop recommendations, and then identify nearby markets through the
+same application. By unifying recommendation, market discovery, and history tracking,
+AgriNova provides a more complete and user-friendly digital agriculture workflow for the
+current context of Nepal.
+
+2.2 Literature Review
+The development of digital agriculture advisory systems has significantly influenced modern
+farming practices in many countries, including Nepal. These platforms generally provide
+users with access to agronomic tips, crop information, weather updates, and market-related
+content through mobile and web channels. However, many currently available systems focus
+mainly on general information delivery and do not provide a unified, personalized workflow
+that connects soil-based crop recommendation with nearest market guidance in one place.
+
+AgriNova addresses this gap by combining two practical decision-support components: a
+Decision Tree based crop recommendation module and a location-aware nearest market
+finder. The recommendation module provides ranked crop suggestions for authenticated
+users based on soil and seasonal input values, while the market module helps users locate
+nearby agricultural markets through coordinate-based distance calculation. In addition,
+AgriNova stores recommendation and market-search history so users can compare previous
+results and make better decisions over time.
+
+Plantix
+Plantix is a widely known agriculture application that supports farmers through image-based
+pest and disease detection. It provides useful advisory content for crop health management
+and has contributed to digital awareness in agriculture. However, its primary focus is on
+disease diagnosis and guidance, and it does not specifically provide integrated
+soil-parameter crop recommendation with nearest market discovery in a unified workflow.
+
+Krishi Guru
+Krishi Guru is a Nepal-focused agriculture information platform that offers farmers practical
+knowledge on crop cultivation and related activities. It is useful for awareness and
+educational support, especially for users seeking general farming guidance. Still, the
+platform does not strongly emphasize personalized recommendation using soil chemistry and
+seasonal parameter inputs with trackable recommendation history.
+
+AgriApp and Similar Advisory Platforms
+AgriApp and related tools provide weather information, crop guidance, and agri-input
+support, which are valuable for routine farming decisions. Despite these strengths, many
+such systems are feature-specific and do not fully integrate account-based recommendation,
+history management, and nearest-market retrieval under one coherent advisory flow.
+
+Therefore, the reviewed systems demonstrate the usefulness of digital agricultural services,
+but also highlight a practical need for integrated, data-driven, and user-specific support.
+AgriNova is designed to meet this need by combining recommendation, market access, and
+historical decision tracking in a single mobile-friendly platform.
+
+
+CHAPTER 3: SYSTEM ANALYSIS AND DESIGN
+
+3.1 Analysis System
+System analysis is the process of examining an existing domain and proposed workflow to
+understand system components, identify practical issues, and define requirements for a
+reliable software solution. It includes requirement gathering, process understanding, data
+identification, and objective definition to guide architecture and implementation. In this
+project, system analysis was essential to understand how AgriNova should support farmers
+and administrators through data-driven crop recommendation, nearest market search,
+history tracking, and controlled data management.
+
+Types of System Analysis
+Structured Approach
+Breaks down the system into process-oriented components and emphasizes data flow.
+Uses process-focused tools like DFDs, ER models, and flowcharts.
+Works well for strictly procedural implementations.
+
+Object-Oriented Approach (OOP)
+Represents the system as interacting objects that combine attributes and behavior.
+Uses UML models such as use case, class, sequence, activity, component, and deployment
+diagrams.
+Supports modularity, reusability, extensibility, and clean maintenance.
+
+Reason for Choosing Object-Oriented Approach
+The Object-Oriented Approach was selected for AgriNova because it aligns with the current
+technology stack and architecture. Flutter uses component/widget-based structure and
+Django follows object-oriented models, serializers, and views. Core entities such as User,
+Profile, Crop, SoilData, Recommendation, Market, and MarketPrice can be naturally modeled
+as software objects. This improves readability, maintainability, and future scalability while
+allowing clear separation of concerns between modules.
+
+3.1.1 Requirement Analysis
+Functional Requirements:
+User Registration/Login: Users can create accounts, authenticate, and manage sessions.
+Profile Management: Users can view and update basic and extended profile information.
+Crop Recommendation: Users can submit soil and seasonal data and receive ranked crop
+recommendations.
+Recommendation History: Users can view previous recommendation records and details.
+Nearest Market Finder: Users can search nearby markets using coordinates and optional
+district filtering.
+Market Search History: Users can view previously performed market searches.
+Crop Management: Admin can add, update, view, and delete crop records.
+Market Management: Admin can add, update, view, and delete market records.
+Market Price Management: Admin can manage crop prices by market.
+User Management: Admin can list users and delete non-admin users.
+
+Figure 3.1: Use Case Diagram of AgriNova System
+
+Non-Functional Requirements:
+Usability: The system should be simple, readable, and mobile-friendly.
+Performance: Core API responses should remain responsive under regular load.
+Reliability: CRUD and recommendation operations should be stable and consistent.
+Security: Token-based authentication and role-based authorization must be enforced.
+Scalability: The architecture should support additional modules and larger datasets.
+
+3.1.2 Feasibility Analysis
+The feasibility study shows that AgriNova is practical and achievable in terms of technology,
+operation, and cost.
+
+Technical Feasibility
+The proposed AgriNova system is technically feasible because it is built with proven,
+well-supported technologies. Flutter is used for a responsive mobile frontend. Django REST
+Framework is used for backend logic and API services. The recommendation module is
+implemented with Python-based ML support (scikit-learn), and the market finder uses
+deterministic geospatial computation through the Haversine formula. The current setup uses
+SQLite for local development and testing, which is sufficient for the present project scope.
+
+Operational Feasibility
+The system is operationally feasible because workflows are straightforward for both major
+roles. Users can register, submit inputs, receive recommendations, search markets, and
+review history in a unified flow. Administrators can manage users and datasets through
+protected endpoints. This reduces manual complexity and supports day-to-day usage.
+
+Economic Feasibility
+The project is cost-effective because it relies on open-source technologies and does not
+require expensive licensing. Development and maintenance overhead remain manageable
+for an academic project. Future production deployment can be scaled incrementally based on
+usage and infrastructure needs.
+
+System Modeling
+System modeling represents structure and behavior through abstract visual models. In
+AgriNova, modeling helps describe how user inputs pass through APIs, how recommendation
+and market search are produced, and how records are persisted for history retrieval.
+
+3.1.3 Object Modeling: Object and Class Diagram
+Object Modeling
+Object modeling represents real-world entities and their relationships in software form.
+In AgriNova, object modeling captures interactions among User, UserProfile, Crop, SoilData,
+CropRecommendation, RecommendationScore, Market, MarketPrice, and MarketSearch.
+These objects define the data model and service behavior used by backend APIs.
+
+Figure 3.2: Class Diagram of AgriNova
+
+Figure 3.3: Object Diagram of AgriNova
+
+3.1.4 Dynamic Modeling: State and Sequence Diagram
+State Diagram
+A state diagram illustrates how an entity moves through states based on events.
+For AgriNova, recommendation and market-search records transition through states such as
+created, processed, stored, and retrieved.
+
+Sequence Diagram
+A sequence diagram shows time-ordered communication between actors and system
+components. In AgriNova, it explains request-response flow for login, recommendation
+generation, market search, and history retrieval.
+
+Figure 3.4: State and Sequence Diagram of AgriNova
+
+3.1.5 Process Modeling: Activity Diagram
+An activity diagram represents workflow from start to end with actions and decisions.
+In AgriNova, activity modeling illustrates user actions (authenticate, submit soil data,
+get recommendation, search nearest market, view history) and admin actions
+(manage crops, markets, prices, and users).
+
+Figure 3.5: Activity Diagram of Admin Workflow in AgriNova
+
+Figure 3.6: Activity Diagram of User Workflow in AgriNova
+
+3.2 System Design
+System design defines architecture, components, interfaces, data structures, and flow
+coordination to satisfy analyzed requirements. The goal is to ensure maintainability,
+efficiency, and extendability.
+
+3.2.1 Refinement of Classes and Objects
+During design refinement, initial entities were adjusted to fit practical API behavior.
+User and profile structures were separated for cleaner account and farm-detail handling.
+Recommendation records were separated from individual recommendation scores to support
+ranked output and traceability. Market and market-price models were separated to support
+multiple prices over time and market-specific retrieval.
+
+Figure 3.7: Refined Class Diagram of AgriNova
+
+3.2.2 Component Diagram
+The component diagram shows major system blocks and their interactions.
+AgriNova is organized in three layers:
+
+Frontend Component (Flutter)
+Handles UI, form submission, token storage, and display of recommendation/market data.
+
+Backend Component (Django REST)
+Processes requests, validates payloads, applies permissions, executes recommendation and
+market logic, and returns JSON responses.
+
+Data Component (SQLite in current setup)
+Stores user data, crop dataset, soil submissions, recommendation history, market records,
+market prices, and market-search history.
+
+Figure 3.8: Component Diagram of AgriNova
+
+3.2.3 Deployment Diagram
+The deployment diagram represents physical deployment arrangement and communication.
+AgriNova follows a client-server model:
+
+Nodes and Their Roles
+Mobile Client (Flutter App)
+Used by users and admins to interact with APIs.
+
+Application Server (Django)
+Hosts authentication, crop recommendation, and market finder services.
+
+Database Server (SQLite in local environment)
+Stores persistent system records.
+
+Interactions:
+The mobile client sends authenticated REST requests to the Django server.
+The server validates input, performs logic, and reads/writes records in the database.
+Responses are returned in JSON and rendered on mobile screens.
+
+Figure 3.9: Deployment Diagram of AgriNova
+
+3.3 Algorithm Details
+
+Decision Tree Algorithm (Crop Recommendation)
+The Decision Tree based approach is used to classify suitability of crops from soil and
+seasonal parameters. The engine evaluates pH, nitrogen, phosphorus, potassium, rainfall,
+and season to generate ranked recommendations.
+
+Mathematical formulation used conceptually:
+Entropy:
+H(S) = -sum(pi * log2(pi))
+
+Information Gain:
+G(S,A) = H(S) - sum((|Sv| / |S|) * H(Sv))
+
+Working Steps:
+Input collection from user soil and seasonal fields.
+Validation and normalization of input payload.
+Engine evaluation and score generation.
+Ranking of suitable crops.
+Persistence of recommendation and ranked scores.
+Return of ranked results with confidence score.
+
+Haversine Formula (Nearest Market Finder)
+The nearest market module computes great-circle distance from user coordinates to market
+coordinates and returns markets ordered by proximity.
+
+Formula:
+d = 2r * arcsin(sqrt(sin^2(delta_lat/2) + cos(lat1)*cos(lat2)*sin^2(delta_lon/2)))
+
+where:
+d = distance between two points
+r = Earth's radius (about 6371 km)
+lat1, lat2 = latitude values
+lon1, lon2 = longitude values
+
+Working Steps:
+Receive latitude, longitude, and optional district filter.
+Retrieve active markets from database.
+Compute distance for each market.
+Sort by shortest distance and limit by requested max results.
+Store search history and return ranked market list.
+
+
+CHAPTER 4: IMPLEMENTATION AND TESTING
+
+4.1 Implementation
+AgriNova works as a mobile-based advisory application with a Flutter frontend and a
+Django REST backend. The frontend is designed to provide a simple and accessible user
+experience for farmers and administrators, while the backend handles authentication,
+business logic, algorithm execution, and persistent data management. API communication is
+performed through token-based authorization, and endpoints are grouped into dedicated
+modules for authentication, crop recommendation, and market finder operations.
+
+For current development and testing, the backend uses SQLite as the default database.
+This setup supports rapid development and verification of features such as profile updates,
+soil-data submission, recommendation generation, market search, and history tracking.
+Swagger and ReDoc documentation routes are also integrated to test and verify API behavior
+during implementation.
+
+As planned in earlier design phases, the project follows Agile methodology. Core modules
+were implemented incrementally, tested in short cycles, and improved iteratively. This
+approach allowed continuous validation of both user-facing and admin-facing workflows,
+ensuring that the system remained consistent, modular, and extensible.
+
+The implemented system allows users to register, log in, submit soil and seasonal input,
+receive ranked crop recommendations, find nearest markets by coordinates, and view
+historical records. On the administrative side, protected management features are available
+to maintain crop, market, market-price, and user records. The final implementation provides
+an end-to-end advisory flow from data entry to actionable recommendation and market
+discovery.
+
+4.1.1 Tools used
+The development of AgriNova involved multiple tools and frameworks for design,
+implementation, testing, and documentation. The key tools used are as follows:
+
+Flutter and Dart
+Used to build the mobile frontend. Flutter enabled responsive UI development and
+component-based screens for login, recommendation forms, market finder, and history views.
+
+Python with Django REST Framework
+Used for backend service development, API routing, validation, permission handling, and
+integration with recommendation and market modules.
+
+SQLite
+Used as the current local database in development. It stores user records, crop datasets,
+soil submissions, recommendations, recommendation scores, market records, and search
+history.
+
+scikit-learn, pandas, and numpy
+Used in recommendation-related backend logic and data handling for Decision Tree based
+crop suitability processing.
+
+drf-yasg (Swagger/ReDoc)
+Used to generate API documentation and interactive endpoint testing interfaces.
+
+Visual Studio Code
+Used as the primary development environment for Flutter and Django codebases.
+
+Git and GitHub
+Used for version control, source backup, and tracking iterative updates during development.
+
+Draw.io
+Used for system diagrams and report-related visual modeling, including architecture and
+workflow illustrations.
+
+4.1.2 Implementation details of modules
+In AgriNova, implementation is organized around two main operational roles: Admin and
+User. Each role has specific features aligned with system requirements.
+
+Admin Module
+The Admin Module is responsible for maintaining core datasets and controlled system
+operations. Administrators ensure that the platform has valid crop and market data and can
+perform management actions through protected endpoints.
+
+The admin can perform the following actions:
+Login
+Admin users authenticate using valid credentials to access secured management functions.
+
+Manage Users
+Admins can view users and delete non-admin user accounts through role-restricted APIs.
+
+Manage Crops
+Admins can add, update, and remove crop records, including agronomic attributes used by
+the recommendation engine.
+
+Manage Markets
+Admins can add, update, and remove market records with district and coordinate data.
+
+Manage Market Prices
+Admins can create and maintain market-specific crop price entries.
+
+Logout
+Admins can terminate sessions securely after completing management tasks.
+
+User Module
+The User Module provides advisory functionality for regular users. It supports account
+access, input submission, recommendation retrieval, market search, and historical review.
+
+Users can perform the following actions:
+Register / Login
+Users create accounts and authenticate to access personalized advisory features.
+
+Profile Management
+Users can view and update profile and extended profile details.
+
+Submit Soil Data and Get Recommendation
+Users submit pH, NPK, rainfall, district, and season values to receive ranked crop
+recommendations generated by the Decision Tree based engine.
+
+View Recommendation History
+Users can access previous recommendation records and details for decision continuity.
+
+Find Nearest Markets
+Users submit location coordinates to receive nearby markets ordered by distance, with
+district-based filtering when required.
+
+View Market Search History
+Users can review previously executed market searches.
+
+Logout
+Users can log out after using the advisory services to maintain account security.
+
+4.2 Testing
+Testing is the process of evaluating software behavior to ensure quality, correctness,
+stability, and security. In AgriNova, testing was performed at unit and system levels to
+verify endpoint behavior, permissions, data integrity, and end-to-end workflow execution.
+
+4.2.1 Test cases for Unit Testing
+Unit testing focuses on individual modules and APIs to confirm that each feature works
+correctly in isolation.
+
+Table 4.1: Test cases for user registration and login validation
+
+Table 4.2: Test cases for profile retrieval and update APIs
+
+Table 4.3: Test cases for crop recommendation request validation and response
+
+Table 4.4: Test cases for nearest market finder distance and filter behavior
+
+4.2.2 Test cases for System Testing
+System testing verifies complete end-to-end behavior across integrated modules.
+
+Table 4.5: End-to-end test cases from user registration to recommendation and history
+
+Table 4.6: End-to-end test cases for nearest market search and search-history persistence
+
+Table 4.7: End-to-end test cases for admin crop, market, and market-price management
+
+
+CHAPTER 5: CONCLUSION AND FUTURE RECOMMENDATIONS
+
+5.1 Conclusion
+The AgriNova system developed in this project successfully fulfills its primary objectives.
+It enables users to submit soil and seasonal information, receive personalized crop
+recommendations, and find nearby agricultural markets through a single integrated
+workflow. The system also provides role-based administrative features to manage users,
+crop data, market records, and market-price information.
+
+Overall, the project improves digital access to agricultural decision support, reduces manual
+effort in advisory planning, and demonstrates the practical value of combining
+recommendation and location-based market guidance in one platform.
+
+5.2 Lesson learnt/Outcome
+This project marks the successful completion of Project II at NIST College, where I
+developed a complete AgriNova advisory platform using Flutter and Django REST
+Framework. Through this project, I gained practical experience in API-based system design,
+mobile-backend integration, authentication workflows, and algorithm-driven feature
+implementation.
+
+Despite time and resource limitations, I was able to implement the essential system
+features. Users can register and log in, submit soil data, get ranked crop recommendations,
+find nearest markets, and review recommendation and search history from a unified mobile
+interface. The admin can efficiently manage key datasets from controlled backend modules.
+
+Key outcomes include:
+Improved Decision Support: Users can make more informed crop planning choices using
+soil-based recommendation rather than guess-based practice.
+Better Market Accessibility: Users can quickly discover nearby markets through
+coordinate-based search, helping reduce selling friction.
+Streamlined Data Management: Administrators can maintain crops, markets, prices, and
+users in a structured way.
+Practical Full-Stack Learning: The project strengthened my understanding of backend API
+logic, mobile integration, security handling, and database-driven workflows.
+
+5.3 Future Recommendations
+To further enhance AgriNova, several improvements can be considered:
+- Production-Ready Deployment: Configure strict CORS policies, secure host settings,
+	environment-based secrets, and hardened server configuration for real deployment.
+- Scalable Database and Infrastructure: Migrate from the current development-focused
+	database setup to a production-grade database and scalable deployment architecture.
+- Advanced Advisory Intelligence: Add explainable recommendation details, weather-aware
+	logic, and optional market trend analysis to support stronger decision quality.
+- Improved User Engagement: Add localized language support, notification workflows,
+	and richer advisory dashboards for better usability.
+- Offline-First Mobile Experience: Add local caching and sync mechanisms so users in
+	low-connectivity regions can still use key advisory features reliably.
+
+By incorporating these enhancements, AgriNova can become more scalable, secure,
+and user-friendly, and can deliver a stronger long-term impact for digital agriculture
+advisory services.
+
+
+APPENDICES
+Appendix A: Sample API Request Payloads
+Appendix B: Sample API Response Payloads
+Appendix C: Swagger/ReDoc Screenshots
+Appendix D: Flutter Screen Captures
+Appendix E: Test Case Records
+
+
+REFERENCES
+[1] J. R. Quinlan, "Induction of decision trees," Machine Learning, vol. 1, no. 1,
+pp. 81-106, 1986.
+[2] E. W. Dijkstra, "A note on two problems in connexion with graphs,"
+Numerische Mathematik, vol. 1, pp. 269-271, 1959.
+[3] G. Haversine, standard great-circle distance method.
+[4] Django Documentation, https://docs.djangoproject.com/
+[5] Django REST Framework Documentation, https://www.django-rest-framework.org/
+[6] Flutter Documentation, https://docs.flutter.dev/
