@@ -35,6 +35,35 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         padding: const EdgeInsets.all(24.0),
         child: userProvider.isLoading
             ? const Center(child: CircularProgressIndicator())
+            : userProvider.error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Failed to load users',
+                      style: TextStyle(fontSize: 18, color: Colors.red[700]),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      userProvider.error!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => userProvider.loadUsers(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
             : users.isEmpty
             ? Center(
                 child: Column(

@@ -4,7 +4,9 @@ from .views import (
     UserLoginView,
     UserLogoutView,
     UserProfileView,
-    UserProfileDetailView
+    UserProfileDetailView,
+    AdminUserListView,
+    AdminUserDeleteView,
 )
 
 app_name = 'authentication'
@@ -15,4 +17,6 @@ urlpatterns = [
     path('logout/', UserLogoutView.as_view(), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('profile/detail/', UserProfileDetailView.as_view(), name='profile-detail'),
+    path('users/', AdminUserListView.as_view(), name='admin-user-list'),
+    path('users/<int:pk>/', AdminUserDeleteView.as_view(), name='admin-user-delete'),
 ]

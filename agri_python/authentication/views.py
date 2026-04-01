@@ -159,3 +159,30 @@ class UserProfileDetailView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
+
+
+class AdminUserListView(generics.ListAPIView):
+    """
+    List all users for admin management.
+    """
+    queryset = User.objects.all().order_by('-id')
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class AdminUserDeleteView(generics.DestroyAPIView):
+    """
+    Delete a non-admin user account.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.is_staff:
+            return Response(
+                {'error': 'Admin users cannot be deleted from this endpoint.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)

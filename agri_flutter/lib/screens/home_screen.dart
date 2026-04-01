@@ -36,6 +36,40 @@ class _HomeScreenState extends State<HomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAdmin = authProvider.user?.isStaff ?? false;
 
+    if (isAdmin) {
+      _pages = [
+        const HomePage(),
+        const AdminMarketsScreen(),
+        const AdminCropsScreen(),
+        const AdminUsersScreen(),
+        const ProfileScreen(),
+      ];
+
+      _navItems = [
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home_rounded),
+          label: 'Home',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.store_rounded),
+          label: 'Mkt Admin',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.eco_rounded),
+          label: 'Crop Admin',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.people_rounded),
+          label: 'User Admin',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
+      ];
+      return;
+    }
+
     // Regular user pages
     _pages = [
       const HomePage(),
@@ -67,30 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
         label: 'Profile',
       ),
     ];
-
-    // Add admin pages if user is staff
-    if (isAdmin) {
-      _pages.addAll([
-        const AdminMarketsScreen(),
-        const AdminCropsScreen(),
-        const AdminUsersScreen(),
-      ]);
-
-      _navItems.addAll([
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.store_rounded),
-          label: 'Mkt Admin',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.eco_rounded),
-          label: 'Crop Admin',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.people_rounded),
-          label: 'User Admin',
-        ),
-      ]);
-    }
   }
 
   @override
