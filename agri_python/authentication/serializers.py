@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 
-                  'phone_number', 'district', 'address', 'profile']
+                  'phone_number', 'district', 'address', 'is_staff', 'profile']
         read_only_fields = ['id', 'username']  # Username cannot be changed
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Simple Custom TextField Widget
 class CustomTextField extends StatelessWidget {
@@ -7,6 +8,11 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final int maxLines;
+  final String? Function(String?)? validator;
+  final String? helperText;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
@@ -15,17 +21,27 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.validator,
+    this.helperText,
+    this.inputFormatters,
+    this.textInputAction,
+    this.focusNode,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      focusNode: focusNode,
       maxLines: maxLines,
+      validator: validator,
+      inputFormatters: inputFormatters,
+      textInputAction: textInputAction,
       decoration: InputDecoration(
         labelText: label,
+        helperText: helperText,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true,
         fillColor: Colors.white,

@@ -81,6 +81,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _handleLogout() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final shouldLogout = await ConfirmationDialog.show(
+      context: context,
+      title: 'Logout',
+      content: 'Are you sure you want to logout?',
+      confirmText: 'Logout',
+      confirmColor: Colors.red,
+    );
+
+    if (shouldLogout == true && mounted) {
+      await authProvider.logout();
+      if (mounted) {
+        NavigationUtils.navigateAndRemoveUntil(context, const LoginScreen());
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -92,6 +110,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            offset: const Offset(0, 40),
+            onSelected: (value) async {
+              if (value == 'edit') {
+                setState(() {
+                  _isEditing = true;
+                });
+              } else if (value == 'logout') {
+                await _handleLogout();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text('Edit Profile'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Logout'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -212,71 +268,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
               const SizedBox(height: 24),
 
-              // Edit/Update button
-              _isEditing
-                  ? CustomButton(
-                      text: 'Update Profile',
-                      onPressed: _updateProfile,
-                      isLoading: authProvider.isLoading,
-                    )
-                  : ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = true;
-                        });
-                      },
-                      icon: const Icon(Icons.edit),
-                      label: const Text('Edit Profile'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-
-              const SizedBox(height: 16),
-
-              // Logout button
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final shouldLogout = await ConfirmationDialog.show(
-                    context: context,
-                    title: 'Logout',
-                    content: 'Are you sure you want to logout?',
-                    confirmText: 'Logout',
-                    confirmColor: Colors.red,
-                  );
-
-                  if (shouldLogout == true && mounted) {
-                    await authProvider.logout();
-                    if (mounted) {
-                      NavigationUtils.navigateAndRemoveUntil(
-                        context,
-                        const LoginScreen(),
-                      );
-                    }
-                  }
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red[700],
-                  side: BorderSide(color: Colors.red[700]!),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              // Update Profile button (only shown in edit mode)
+              if (_isEditing)
+                CustomButton(
+                  text: 'Update Profile',
+                  onPressed: _updateProfile,
+                  isLoading: authProvider.isLoading,
                 ),
-              ),
             ],
           ),
         ),

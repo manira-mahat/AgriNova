@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
@@ -56,16 +57,53 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      // Parse error message from exception
-      String errorMsg = e.toString().replaceFirst('Exception: ', '');
-      if (errorMsg.startsWith('Error: Exception:')) {
-        errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
-      }
-      _error = errorMsg;
+      _error = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;
     }
+  }
+
+  // Parse error message from JSON or string
+  String _parseErrorMessage(String errorMsg) {
+    // Remove Exception wrapper if present
+    errorMsg = errorMsg.replaceFirst('Exception: ', '');
+    if (errorMsg.startsWith('Error: Exception:')) {
+      errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
+    }
+
+    // Try to parse as JSON
+    try {
+      final jsonData = jsonDecode(errorMsg);
+      if (jsonData is Map<String, dynamic>) {
+        // Extract error messages from field errors
+        List<String> errors = [];
+        jsonData.forEach((key, value) {
+          if (value is List) {
+            for (var msg in value) {
+              errors.add(msg.toString());
+            }
+          } else if (value is String) {
+            errors.add(value);
+          } else if (value is Map) {
+            value.forEach((k, v) {
+              if (v is List) {
+                for (var msg in v) {
+                  errors.add(msg.toString());
+                }
+              } else {
+                errors.add(v.toString());
+              }
+            });
+          }
+        });
+        return errors.isNotEmpty ? errors.join(', ') : 'Login failed';
+      }
+    } catch (_) {
+      // JSON parse failed, return original message
+    }
+
+    return errorMsg;
   }
 
   // Login user
@@ -94,12 +132,7 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      // Parse error message from exception
-      String errorMsg = e.toString().replaceFirst('Exception: ', '');
-      if (errorMsg.startsWith('Error: Exception:')) {
-        errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
-      }
-      _error = errorMsg;
+      _error = _parseErrorMessage(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;

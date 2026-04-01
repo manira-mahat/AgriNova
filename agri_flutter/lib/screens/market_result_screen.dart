@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/market_provider.dart';
+import 'home_screen.dart';
 
 // Simple Market Result Screen
 class MarketResultScreen extends StatelessWidget {
@@ -128,14 +129,16 @@ class MarketResultScreen extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (route) => false,
+                  );
                 },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.green[700]!),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('Back to Dashboard'),
+                child: const Text('Back to Home'),
               ),
             ),
           ],

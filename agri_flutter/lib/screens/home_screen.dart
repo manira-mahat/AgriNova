@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/feature_item.dart';
 import '../widgets/app_logo.dart';
@@ -8,6 +9,9 @@ import 'crop_recommend_screen.dart';
 import 'market_finder_screen.dart';
 import 'history_screen.dart';
 import 'profile_screen.dart';
+import 'admin_markets_screen.dart';
+import 'admin_crops_screen.dart';
+import 'admin_users_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,13 +23,75 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const CropRecommendScreen(),
-    const MarketFinderScreen(),
-    const HistoryScreen(),
-    const ProfileScreen(),
-  ];
+  late List<Widget> _pages;
+  late List<BottomNavigationBarItem> _navItems;
+
+  @override
+  void initState() {
+    super.initState();
+    _buildNavigation();
+  }
+
+  void _buildNavigation() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final isAdmin = authProvider.user?.isStaff ?? false;
+
+    // Regular user pages
+    _pages = [
+      const HomePage(),
+      const CropRecommendScreen(),
+      const MarketFinderScreen(),
+      const HistoryScreen(),
+      const ProfileScreen(),
+    ];
+
+    _navItems = [
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.home_rounded),
+        label: 'Home',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.eco_rounded),
+        label: 'Crops',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.store_rounded),
+        label: 'Markets',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.history_rounded),
+        label: 'History',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.person_rounded),
+        label: 'Profile',
+      ),
+    ];
+
+    // Add admin pages if user is staff
+    if (isAdmin) {
+      _pages.addAll([
+        const AdminMarketsScreen(),
+        const AdminCropsScreen(),
+        const AdminUsersScreen(),
+      ]);
+
+      _navItems.addAll([
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.store_rounded),
+          label: 'Mkt Admin',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.eco_rounded),
+          label: 'Crop Admin',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.people_rounded),
+          label: 'User Admin',
+        ),
+      ]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,28 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
           selectedFontSize: 12,
           unselectedFontSize: 12,
           elevation: 8,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.eco_rounded),
-              label: 'Crops',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.store_rounded),
-              label: 'Markets',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_rounded),
-              label: 'History',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
+          items: _navItems,
         ),
       ),
     );

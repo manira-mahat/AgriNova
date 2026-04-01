@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/market_provider.dart';
 import '../widgets/custom_textfield.dart';
@@ -14,33 +15,72 @@ class MarketFinderScreen extends StatefulWidget {
 }
 
 class _MarketFinderScreenState extends State<MarketFinderScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
-  final _radiusController = TextEditingController(text: '10');
+  final List<TextInputFormatter> _coordinateInputFormatters = [
+    FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
+  ];
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  String? _validateLatitude(String? value) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) {
+      return 'Latitude is required';
+    }
+
+    final latitude = double.tryParse(input);
+    if (latitude == null) {
+      return 'Enter a valid latitude value';
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      return 'Latitude must be between -90 and 90 degrees';
+    }
+
+    return null;
+  }
+
+  String? _validateLongitude(String? value) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) {
+      return 'Longitude is required';
+    }
+
+    final longitude = double.tryParse(input);
+    if (longitude == null) {
+      return 'Enter a valid longitude value';
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return 'Longitude must be between -180 and 180 degrees';
+    }
+
+    return null;
+  }
 
   @override
   void dispose() {
     _latitudeController.dispose();
     _longitudeController.dispose();
-    _radiusController.dispose();
     super.dispose();
   }
 
   Future<void> _findMarkets() async {
     final marketProvider = Provider.of<MarketProvider>(context, listen: false);
 
-    // Validate inputs
-    if (_latitudeController.text.isEmpty || _longitudeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter latitude and longitude')),
-      );
+    FocusScope.of(context).unfocus();
+    final isFormValid = _formKey.currentState?.validate() ?? false;
+    if (!isFormValid) {
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
       return;
     }
 
     final data = {
-      "latitude": double.parse(_latitudeController.text),
-      "longitude": double.parse(_longitudeController.text),
-      "radius_km": double.parse(_radiusController.text),
+      "latitude": double.parse(_latitudeController.text.trim()),
+      "longitude": double.parse(_longitudeController.text.trim()),
     };
 
     final success = await marketProvider.findNearest(data);
@@ -71,80 +111,90 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Find Nearby Markets',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Enter your location to find agricultural markets near you',
-                style: TextStyle(fontSize: 14, color: Colors.green[600]),
-              ),
-              const SizedBox(height: 30),
-
-              // Info card
-              Card(
-                color: Colors.green[100],
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info, color: Colors.green[700]),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'You can get your location coordinates from Google Maps or GPS',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    ],
+          child: Form(
+            key: _formKey,
+            autovalidateMode: _autovalidateMode,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Find Nearby Markets',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
+                const SizedBox(height: 10),
+                Text(
+                  'Enter your location to find agricultural markets near you',
+                  style: TextStyle(fontSize: 14, color: Colors.green[600]),
+                ),
+                const SizedBox(height: 30),
 
-              // Latitude
-              CustomTextField(
-                label: 'Latitude',
-                controller: _latitudeController,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
+                // Info card
+                Card(
+                  color: Colors.green[100],
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'You can get your location coordinates from Google Maps or GPS',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
 
-              // Longitude
-              CustomTextField(
-                label: 'Longitude',
-                controller: _longitudeController,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
+                // Latitude
+                CustomTextField(
+                  label: 'Latitude',
+                  controller: _latitudeController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  validator: _validateLatitude,
+                  inputFormatters: _coordinateInputFormatters,
+                  helperText: 'Range: -90 to 90 degrees',
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 16),
 
-              // Radius
-              CustomTextField(
-                label: 'Search Radius (km)',
-                controller: _radiusController,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 24),
+                // Longitude
+                CustomTextField(
+                  label: 'Longitude',
+                  controller: _longitudeController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  validator: _validateLongitude,
+                  inputFormatters: _coordinateInputFormatters,
+                  helperText: 'Range: -180 to 180 degrees',
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 24),
 
-              // Find Markets button
-              Consumer<MarketProvider>(
-                builder: (context, marketProvider, child) {
-                  return CustomButton(
-                    text: 'Find Markets',
-                    onPressed: _findMarkets,
-                    isLoading: marketProvider.isLoading,
-                  );
-                },
-              ),
-            ],
+                // Find Markets button
+                Consumer<MarketProvider>(
+                  builder: (context, marketProvider, child) {
+                    return CustomButton(
+                      text: 'Find Markets',
+                      onPressed: _findMarkets,
+                      isLoading: marketProvider.isLoading,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

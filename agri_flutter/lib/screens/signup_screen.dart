@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/custom_button.dart';
-import 'dashboard_screen.dart';
+import 'home_screen.dart';
 
 // Simple Signup Screen
 class SignupScreen extends StatefulWidget {
@@ -65,11 +65,21 @@ class _SignupScreenState extends State<SignupScreen> {
     if (success && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.error ?? 'Signup failed')),
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Signup Failed'),
+          content: Text(authProvider.error ?? 'Signup failed'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
     }
   }
