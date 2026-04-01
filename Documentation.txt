@@ -657,9 +657,9 @@ recommendations, and find nearby agricultural markets through a single integrate
 workflow. The system also provides role-based administrative features to manage users,
 crop data, market records, and market-price information.
 
-Overall, the project improves digital access to agricultural decision support, reduces manual
-effort in advisory planning, and demonstrates the practical value of combining
-recommendation and location-based market guidance in one platform.
+Overall, the project enhances agricultural decision-making, reduces manual effort in
+planning and market search, and provides valuable practical learning in full-stack
+application development.
 
 5.2 Lesson learnt/Outcome
 This project marks the successful completion of Project II at NIST College, where I
@@ -674,27 +674,27 @@ find nearest markets, and review recommendation and search history from a unifie
 interface. The admin can efficiently manage key datasets from controlled backend modules.
 
 Key outcomes include:
-Improved Decision Support: Users can make more informed crop planning choices using
+• Improved Decision Support: Users can make more informed crop planning choices using
 soil-based recommendation rather than guess-based practice.
-Better Market Accessibility: Users can quickly discover nearby markets through
+• Better Market Accessibility: Users can quickly discover nearby markets through
 coordinate-based search, helping reduce selling friction.
-Streamlined Data Management: Administrators can maintain crops, markets, prices, and
-users in a structured way.
-Practical Full-Stack Learning: The project strengthened my understanding of backend API
+• Streamlined Management: Administrators can maintain crops, markets, prices, and users
+through controlled modules.
+• Practical Full-Stack Learning: The project strengthened my understanding of backend API
 logic, mobile integration, security handling, and database-driven workflows.
 
 5.3 Future Recommendations
 To further enhance AgriNova, several improvements can be considered:
-- Production-Ready Deployment: Configure strict CORS policies, secure host settings,
-	environment-based secrets, and hardened server configuration for real deployment.
-- Scalable Database and Infrastructure: Migrate from the current development-focused
-	database setup to a production-grade database and scalable deployment architecture.
-- Advanced Advisory Intelligence: Add explainable recommendation details, weather-aware
-	logic, and optional market trend analysis to support stronger decision quality.
-- Improved User Engagement: Add localized language support, notification workflows,
-	and richer advisory dashboards for better usability.
-- Offline-First Mobile Experience: Add local caching and sync mechanisms so users in
-	low-connectivity regions can still use key advisory features reliably.
+• Production-Ready Deployment: Configure strict CORS policies, secure host settings,
+environment-based secrets, and hardened server configuration for real deployment.
+• Scalable Database and Infrastructure: Migrate from the current development-focused
+database setup to a production-grade database and scalable deployment architecture.
+• Advanced Advisory Intelligence: Add explainable recommendation details, weather-aware
+logic, and optional market trend analysis to support stronger decision quality.
+• Improved User Engagement: Add localized language support, notification workflows,
+and richer advisory dashboards for better usability.
+• Offline-First Mobile Experience: Add local caching and sync mechanisms so users in
+low-connectivity regions can still use key advisory features reliably.
 
 By incorporating these enhancements, AgriNova can become more scalable, secure,
 and user-friendly, and can deliver a stronger long-term impact for digital agriculture
@@ -714,7 +714,11 @@ REFERENCES
 pp. 81-106, 1986.
 [2] E. W. Dijkstra, "A note on two problems in connexion with graphs,"
 Numerische Mathematik, vol. 1, pp. 269-271, 1959.
-[3] G. Haversine, standard great-circle distance method.
-[4] Django Documentation, https://docs.djangoproject.com/
-[5] Django REST Framework Documentation, https://www.django-rest-framework.org/
-[6] Flutter Documentation, https://docs.flutter.dev/
+[3] "Haversine Formula," [Online]. Available: https://en.wikipedia.org/wiki/Haversine_formula.
+[Accessed: 01 April 2026].
+[4] "Django Documentation," [Online]. Available: https://docs.djangoproject.com/.
+[Accessed: 01 April 2026].
+[5] "Django REST Framework Documentation," [Online]. Available: https://www.django-rest-framework.org/.
+[Accessed: 01 April 2026].
+[6] "Flutter Documentation," [Online]. Available: https://docs.flutter.dev/.
+[Accessed: 01 April 2026].
