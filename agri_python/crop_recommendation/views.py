@@ -121,7 +121,7 @@ class CropRecommendationView(APIView):
             rainfall=data['rainfall'],
             temperature=data.get('temperature'),
             humidity=data.get('humidity'),
-            district=data['district'],
+            district='Not Provided',
             season=data['season'],
             notes=data.get('notes', '')
         )

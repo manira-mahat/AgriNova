@@ -23,38 +23,46 @@ class CropResultScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Result card
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        size: 80,
-                        color: Colors.green[700],
+              Center(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            size: 80,
+                            color: Colors.green[700],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Recommended Crop',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.green[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            recommendation?.cropName ?? 'N/A',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[700],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Recommended Crop',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.green[600],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        recommendation?.cropName ?? 'N/A',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -84,10 +92,8 @@ class CropResultScreen extends StatelessWidget {
                 'Temperature',
                 '${recommendation?.temperature ?? 0}°C',
               ),
-              _buildInfoRow('Humidity', '${recommendation?.humidity ?? 0}%'),
               _buildInfoRow('pH Level', '${recommendation?.ph ?? 0}'),
               _buildInfoRow('Rainfall', '${recommendation?.rainfall ?? 0} mm'),
-              _buildInfoRow('District', recommendation?.district ?? 'N/A'),
               _buildInfoRow('Season', recommendation?.season ?? 'N/A'),
               const SizedBox(height: 30),
 

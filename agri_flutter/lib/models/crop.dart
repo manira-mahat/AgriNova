@@ -25,17 +25,27 @@ class Crop {
   });
 
   factory Crop.fromJson(Map<String, dynamic> json) {
+    double asDouble(dynamic value) {
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Crop(
       id: json['id'],
       name: json['name'],
-      nitrogenMin: (json['nitrogen_min'] ?? 0).toDouble(),
-      nitrogenMax: (json['nitrogen_max'] ?? 0).toDouble(),
-      phosphorusMin: (json['phosphorus_min'] ?? 0).toDouble(),
-      phosphorusMax: (json['phosphorus_max'] ?? 0).toDouble(),
-      potassiumMin: (json['potassium_min'] ?? 0).toDouble(),
-      potassiumMax: (json['potassium_max'] ?? 0).toDouble(),
-      phMin: (json['ph_min'] ?? 0).toDouble(),
-      phMax: (json['ph_max'] ?? 0).toDouble(),
+      nitrogenMin: asDouble(json['min_nitrogen'] ?? json['nitrogen_min']),
+      nitrogenMax: asDouble(json['max_nitrogen'] ?? json['nitrogen_max']),
+      phosphorusMin: asDouble(
+        json['min_phosphorus'] ?? json['phosphorus_min'],
+      ),
+      phosphorusMax: asDouble(
+        json['max_phosphorus'] ?? json['phosphorus_max'],
+      ),
+      potassiumMin: asDouble(json['min_potassium'] ?? json['potassium_min']),
+      potassiumMax: asDouble(json['max_potassium'] ?? json['potassium_max']),
+      phMin: asDouble(json['min_ph'] ?? json['ph_min']),
+      phMax: asDouble(json['max_ph'] ?? json['ph_max']),
     );
   }
 }

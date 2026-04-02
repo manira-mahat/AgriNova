@@ -50,6 +50,5 @@ class CropRecommendationRequestSerializer(serializers.Serializer):
     rainfall = serializers.FloatField(min_value=0)
     temperature = serializers.FloatField(required=False, allow_null=True)
     humidity = serializers.FloatField(min_value=0, max_value=100, required=False, allow_null=True)
-    district = serializers.CharField(max_length=100)
     season = serializers.ChoiceField(choices=Crop.SEASONS)
     notes = serializers.CharField(required=False, allow_blank=True)

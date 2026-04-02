@@ -32,6 +32,15 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.green,
             primary: Colors.green[700]!,
           ),
+          snackBarTheme: SnackBarThemeData(
+            backgroundColor: Colors.green[700],
+            contentTextStyle: const TextStyle(color: Colors.white),
+            behavior: SnackBarBehavior.floating,
+            insetPadding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
           useMaterial3: true,
         ),
         home: const SplashScreen(),

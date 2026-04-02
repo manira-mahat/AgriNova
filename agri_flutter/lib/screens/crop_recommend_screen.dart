@@ -20,18 +20,14 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   final _phosphorusController = TextEditingController();
   final _potassiumController = TextEditingController();
   final _temperatureController = TextEditingController();
-  final _humidityController = TextEditingController();
   final _phController = TextEditingController();
   final _rainfallController = TextEditingController();
-  final _districtController = TextEditingController();
   final _nitrogenFocusNode = FocusNode();
   final _phosphorusFocusNode = FocusNode();
   final _potassiumFocusNode = FocusNode();
   final _temperatureFocusNode = FocusNode();
-  final _humidityFocusNode = FocusNode();
   final _phFocusNode = FocusNode();
   final _rainfallFocusNode = FocusNode();
-  final _districtFocusNode = FocusNode();
   final List<TextInputFormatter> _numericInputFormatters = [
     FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
   ];
@@ -131,46 +127,20 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
     return null;
   }
 
-  String? _validateDistrict(String? value) {
-    final district = value?.trim() ?? '';
-    if (district.isEmpty) {
-      return 'District is required';
-    }
-
-    if (district.length < 2) {
-      return 'District must be at least 2 characters';
-    }
-
-    if (district.length > 50) {
-      return 'District must be 50 characters or less';
-    }
-
-    final pattern = RegExp(r'^[A-Za-z\s\-]+$');
-    if (!pattern.hasMatch(district)) {
-      return 'Use letters, spaces, and hyphens only';
-    }
-
-    return null;
-  }
-
   @override
   void dispose() {
     _nitrogenController.dispose();
     _phosphorusController.dispose();
     _potassiumController.dispose();
     _temperatureController.dispose();
-    _humidityController.dispose();
     _phController.dispose();
     _rainfallController.dispose();
-    _districtController.dispose();
     _nitrogenFocusNode.dispose();
     _phosphorusFocusNode.dispose();
     _potassiumFocusNode.dispose();
     _temperatureFocusNode.dispose();
-    _humidityFocusNode.dispose();
     _phFocusNode.dispose();
     _rainfallFocusNode.dispose();
-    _districtFocusNode.dispose();
     super.dispose();
   }
 
@@ -191,10 +161,8 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
       "phosphorus": double.parse(_phosphorusController.text.trim()),
       "potassium": double.parse(_potassiumController.text.trim()),
       "temperature": double.parse(_temperatureController.text.trim()),
-      "humidity": double.parse(_humidityController.text.trim()),
       "ph_level": double.parse(_phController.text.trim()),
       "rainfall": double.parse(_rainfallController.text.trim()),
-      "district": _districtController.text.trim(),
       "season": _selectedSeason,
     };
 
@@ -259,7 +227,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                     value,
                     field: 'Nitrogen',
                     min: 0,
-                    max: 140,
+                    max: 1000,
                     unit: 'kg/ha',
                   ),
                   inputFormatters: _numericInputFormatters,
@@ -267,7 +235,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 ),
                 _buildGuideOnFocus(
                   focusNode: _nitrogenFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-140', unit: 'kg/ha'),
+                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
                 ),
                 const SizedBox(height: 16),
 
@@ -283,7 +251,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                     value,
                     field: 'Phosphorus',
                     min: 5,
-                    max: 145,
+                    max: 1000,
                     unit: 'kg/ha',
                   ),
                   inputFormatters: _numericInputFormatters,
@@ -291,7 +259,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 ),
                 _buildGuideOnFocus(
                   focusNode: _phosphorusFocusNode,
-                  child: _buildRangeUnitGuide(range: '5-145', unit: 'kg/ha'),
+                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
                 ),
                 const SizedBox(height: 16),
 
@@ -306,8 +274,8 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                   validator: (value) => _validateNumericField(
                     value,
                     field: 'Potassium',
-                    min: 5,
-                    max: 205,
+                    min: 0,
+                    max: 1000,
                     unit: 'kg/ha',
                   ),
                   inputFormatters: _numericInputFormatters,
@@ -315,7 +283,7 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 ),
                 _buildGuideOnFocus(
                   focusNode: _potassiumFocusNode,
-                  child: _buildRangeUnitGuide(range: '5-205', unit: 'kg/ha'),
+                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
                 ),
                 const SizedBox(height: 16),
 
@@ -340,30 +308,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 _buildGuideOnFocus(
                   focusNode: _temperatureFocusNode,
                   child: _buildRangeUnitGuide(range: '0-50', unit: '°C'),
-                ),
-                const SizedBox(height: 16),
-
-                // Humidity
-                CustomTextField(
-                  label: 'Humidity (%)',
-                  controller: _humidityController,
-                  focusNode: _humidityFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Humidity',
-                    min: 0,
-                    max: 100,
-                    unit: '%',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _humidityFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-100', unit: '%'),
                 ),
                 const SizedBox(height: 16),
 
@@ -411,26 +355,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 _buildGuideOnFocus(
                   focusNode: _rainfallFocusNode,
                   child: _buildRangeUnitGuide(range: '>= 0', unit: 'mm/year'),
-                ),
-                const SizedBox(height: 16),
-
-                // District
-                CustomTextField(
-                  label: 'District',
-                  controller: _districtController,
-                  focusNode: _districtFocusNode,
-                  validator: _validateDistrict,
-                  textInputAction: TextInputAction.done,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _districtFocusNode,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 4),
-                    child: _buildGuideChip(
-                      icon: Icons.location_on_outlined,
-                      text: 'Letters only, 2-50 characters',
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
 
