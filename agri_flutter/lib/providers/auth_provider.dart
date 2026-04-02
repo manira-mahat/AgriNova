@@ -72,6 +72,13 @@ class AuthProvider with ChangeNotifier {
       errorMsg = errorMsg.replaceFirst('Error: Exception: ', '');
     }
 
+    final lower = errorMsg.toLowerCase();
+    if (lower.contains('<!doctype html') ||
+        lower.contains('<html') ||
+        lower.contains('<title>not found</title>')) {
+      return 'Connected to a non-API server. Please ensure AgriNova backend is running on port 8000.';
+    }
+
     // Try to parse as JSON
     try {
       final jsonData = jsonDecode(errorMsg);
@@ -100,7 +107,14 @@ class AuthProvider with ChangeNotifier {
         return errors.isNotEmpty ? errors.join(', ') : 'Login failed';
       }
     } catch (_) {
-      // JSON parse failed, return original message
+      // JSON parse failed; show cleaner message for common transport failures.
+    }
+
+    if (lower.contains('socketexception') ||
+        lower.contains('connection refused') ||
+        lower.contains('connection timeout') ||
+        lower.contains('cannot connect')) {
+      return 'Cannot connect to AgriNova backend. Check server status and network.';
     }
 
     return errorMsg;

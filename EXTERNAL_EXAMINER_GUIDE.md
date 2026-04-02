@@ -1,889 +1,577 @@
-# AgriNova - Detailed Technical Documentation for External Examiner
+# AgriNova External Examiner Guide
 
-> **KEY POINT**: The **Crop Recommendation Algorithm** is `calculate_suitability_scores()` - a **rule-based scoring algorithm** (NOT machine learning). It compares user's soil parameters against optimal crop ranges, calculates suitability scores, and returns ranked recommendations. This IS the recommendation algorithm.
+This guide is prepared for viva, demonstration, and technical defense.
+It is updated to match the current codebase state.
 
-## Table of Contents
-1. [Project Overview](#project-overview)
-2. [The Recommendation Algorithm - Quick Summary](#the-recommendation-algorithm---quick-summary)
-3. [Dataset Source & Structure](#dataset-source--structure)
-4. [The Recommendation Algorithm - Code Location](#the-recommendation-algorithm---code-location)
-5. [How the Recommendation Algorithm Works](#how-the-recommendation-algorithm-works)
-6. [Recommendation Algorithm - Detailed Walkthrough](#recommendation-algorithm---detailed-walkthrough)
-7. [Complete Working Example](#complete-working-example)
-8. [Key Technical Points](#key-technical-points)
-9. [File Structure Summary](#file-structure-summary)
-10. [Demonstration Points](#demonstration-points)
-11. [Conclusion](#conclusion)
+## 1. Quick Facts (Examiner Snapshot)
 
----
+- Project: AgriNova (Agriculture Advisory + Market Finder)
+- Frontend: Flutter (mobile app)
+- Backend: Django REST Framework
+- Auth: Token authentication (DRF Token)
+- Current DB setup: SQLite (development configuration)
+- API docs: Swagger and ReDoc
+- Core advisory logic:
+  - Crop recommendation: Rule-based scoring engine in prediction path
+  - Nearest market finder: Haversine formula
 
-## 1. Project Overview
+Important clarification:
+- The codebase includes DecisionTreeClassifier training utilities.
+- Live recommendation response path currently uses rule-based scoring via calculate_suitability_scores inside predict.
+- API response stores algorithm_used as "Decision Tree" for recommendation records.
 
-**AgriNova** is an intelligent agriculture advisory system that helps Nepali farmers make data-driven decisions about crop selection. The system uses a **rule-based scoring algorithm** as its core recommendation engine to recommend suitable crops based on soil conditions and environmental parameters.
 
-### Core Features:
-- **Crop Recommendation Engine**: The recommendation algorithm is a rule-based scoring system
-- **Market Finder**: Locate nearest agricultural markets using Haversine formula
-- **User Management**: Farmer profiles and history tracking
+## 2. What to Say in 30 Seconds
 
-### Technology Stack:
-- **Backend**: Python 3.13, Django 5.2.7, Django REST Framework
-- **Algorithm**: Custom rule-based scoring system (not ML-dependent)
-- **Optional ML Component**: scikit-learn Decision Tree (implemented but not primary method)
-- **Database**: MySQL
-- **Frontend**: Flutter (mobile app)
+AgriNova is a mobile-first advisory platform for farmers. A user submits soil and season data; the system ranks suitable crops using a deterministic scoring algorithm based on crop requirement ranges. The user can also search nearest markets using Haversine distance from coordinates. The backend is modularized into authentication, crop_recommendation, and market_finder apps with token-based access and role-based endpoint control.
 
----
 
-## 2. The Recommendation Algorithm - Quick Summary
+## 3. Current Architecture
 
-### **What is the Recommendation Algorithm?**
+### 3.1 Application Layers
+- Presentation layer: Flutter app
+- Service layer: Django REST APIs
+- Data layer: SQLite in current dev setup
 
-The **Crop Recommendation Algorithm** in AgriNova is the `calculate_suitability_scores()` method. This is a **rule-based scoring algorithm** that:
+### 3.2 Backend Apps
+- authentication
+  - register/login/logout
+  - profile and profile/detail
+  - admin user listing and non-admin deletion
+- crop_recommendation
+  - crop CRUD
+  - soil-data CRUD (user-scoped)
+  - recommend, recommendations history/detail, crop search
+- market_finder
+  - market CRUD
+  - market price CRUD
+  - find-nearest, search-history, by-district, market-specific prices
 
-1. **Takes Input**: User's soil parameters (pH, nitrogen, phosphorus, potassium, rainfall, season)
-2. **Processes**: Compares user values against optimal ranges for each crop
-3. **Scores**: Calculates suitability score (0.0 to 1.0) for each crop
-4. **Ranks**: Sorts crops by score (highest = most suitable)
-5. **Returns**: Top 5 recommended crops with scores and rankings
+### 3.3 Auth and Permissions
+- Default DRF permission: IsAuthenticated
+- Public/AllowAny endpoints: register/login (in their views)
+- Admin-only operations: create/update/delete for crops/markets/prices, admin user list/delete
 
-### **Algorithm Type**: Traditional Computer Science Algorithm
-- **Category**: Rule-based scoring and ranking system
-- **NOT**: Machine Learning, AI, Neural Networks, or Statistical Learning
-- **Similar to**: Search ranking, filtering algorithms, recommendation filters
 
-### **Why This Approach?**
-- Agricultural research provides exact optimal ranges for crops
-- Transparent and explainable to farmers
-- No training data required
-- Instant recommendations
-- Based on Nepal Agricultural Research Council (NARC) guidelines
+## 4. Crop Recommendation: Real Runtime Logic
 
----
+### 4.1 Actual Runtime Flow
+1. User calls POST /api/crops/recommend/
+2. Request validated by CropRecommendationRequestSerializer
+3. SoilData record is saved
+4. Engine predict(...) is called
+5. predict(...) computes scores using calculate_suitability_scores(...)
+6. Results are ranked, filtered, saved into CropRecommendation and RecommendationScore
+7. API returns ranked recommendations + confidence
 
-## 3. Dataset Source & Structure
+### 4.2 Rule-Based Scoring Core
+For each crop (season-compatible only):
+- Compute parameter score for pH, N, P, K, rainfall
+- If within optimal range: score 1.0
+- If outside range: penalize by distance from boundary
+- Final score: average of 5 parameter scores (equal weighting)
+- Rank descending
+- Filter threshold around 0.3 for recommendation inclusion
 
-### 2.1 Where is the Dataset From?
+### 4.3 Why This Matters in Viva
+- Deterministic and explainable output
+- No dependence on historical labeled user outcomes
+- Easy to audit and validate with domain experts
+- Suitable for small curated crop datasets
 
-**The dataset is MANUALLY CURATED and SYNTHETIC** based on:
+### 4.4 ML Utilities Present in Code
+The engine has:
+- prepare_training_data
+- train_model
+- season encoding
 
-1. **Agricultural Research Data**: Crop requirements compiled from:
-   - Nepal Agricultural Research Council (NARC) publications
-   - Ministry of Agriculture and Livestock Development, Nepal
-   - International agricultural databases (FAO, CGIAR)
-   - Scientific literature on crop requirements
+These support optional Decision Tree experimentation, but recommendation generation path for current API is rule-based scoring.
 
-2. **Domain Expert Knowledge**: Agricultural experts provided optimal ranges for:
-   - Soil pH levels
-   - NPK (Nitrogen, Phosphorus, Potassium) requirements
-   - Rainfall requirements
-   - Suitable growing seasons
+### 4.5 Exactly Where Data Comes From and How Recommendation Is Produced
 
-3. **Location**: Dataset is defined in the code itself
-   - File: `/agri_python/crop_recommendation/management/commands/seed_crops.py`
-   - Contains 12 crops commonly grown in Nepal
+This is the direct answer for viva questions like:
+- "From where is recommendation data coming?"
+- "Where is algorithm used in code?"
+- "How is data shown on screen?"
 
-### 2.2 Dataset Structure
+Data source for recommendation:
+1. Crop requirement dataset stored in Crop table (seeded from management command).
+2. Live user input from form fields (pH, N, P, K, rainfall, season, district).
 
-Each crop has the following parameters:
+Code path (backend):
 
-| Parameter | Type | Description | Unit | Example (Rice) |
-|-----------|------|-------------|------|----------------|
-| **name** | String | Crop name | - | Rice |
-| **scientific_name** | String | Scientific classification | - | Oryza sativa |
-| **min_ph** | Float | Minimum soil pH | pH scale | 5.5 |
-| **max_ph** | Float | Maximum soil pH | pH scale | 7.0 |
-| **min_nitrogen** | Float | Minimum nitrogen content | mg/kg | 80 |
-| **max_nitrogen** | Float | Maximum nitrogen content | mg/kg | 120 |
-| **min_phosphorus** | Float | Minimum phosphorus content | mg/kg | 40 |
-| **max_phosphorus** | Float | Maximum phosphorus content | mg/kg | 60 |
-| **min_potassium** | Float | Minimum potassium content | mg/kg | 40 |
-| **max_potassium** | Float | Maximum potassium content | mg/kg | 60 |
-| **min_rainfall** | Float | Minimum annual rainfall | mm | 1200 |
-| **max_rainfall** | Float | Maximum annual rainfall | mm | 2500 |
-| **suitable_seasons** | String | Comma-separated seasons | - | monsoon, summer |
-| **growth_duration** | Integer | Days to harvest | days | 120 |
-| **yield_per_hectare** | Float | Expected yield | kg/hectare | 4000 |
-| **market_price** | Float | Average market price | NPR/kg | 35 |
-
-### 2.3 Complete Dataset
-
-The database contains **12 crops**:
-1. **Rice** - Monsoon/Summer crop
-2. **Wheat** - Winter/Autumn crop
-3. **Maize** - Summer/Spring crop
-4. **Potato** - Winter/Autumn crop
-5. **Tomato** - Multi-season vegetable
-6. **Cauliflower** - Winter/Autumn vegetable
-7. **Cabbage** - Winter/Autumn vegetable
-8. **Lentil** - Winter pulse crop
-9. **Mustard** - Winter/Autumn oilseed
-10. **Cucumber** - Summer/Spring vegetable
-11. **Onion** - Winter/Spring bulb crop
-12. **Chili** - Summer/Monsoon spice crop
-
----
-
-## 3. The Recommendation Algorithm (Rule-Based Scoring)
-
-### 3.1 Where is the Recommendation Algorithm Code?
-
-**Location**: `/agri_python/crop_recommendation/recommendation_engine.py`
-
-**Class**: `CropRecommendationEngine`
-
-**THE RECOMMENDATION ALGORITHM**: `calculate_suitability_scores()` - Lines 99-150
-- **This is the complete crop recommendation algorithm**
-- Takes soil parameters → Returns ranked crop recommendations
-- Rule-based scoring logic (no ML)
-
-**Optional ML Methods** (implemented but NOT used for recommendations):
-- `prepare_training_data()` - Lines 22-64
-- `train_model()` - Lines 79-97
-- `_encode_season()` - Lines 66-77
-
-### 3.2 What the Recommendation Algorithm Needs
-
-#### Step 1: Crop Database Loading
 ```python
+# views.py (recommend endpoint)
+recommendations = crop_recommendation_engine.predict(
+  data['ph_level'],
+  data['nitrogen'],
+  data['phosphorus'],
+  data['potassium'],
+  data['rainfall'],
+  data['season']
+)
+```
+
+```python
+# recommendation_engine.py (runtime recommendation path)
+def predict(self, ph_level, nitrogen, phosphorus, potassium, rainfall, season):
+  season_encoded = self._encode_season(season)
+  scores = self.calculate_suitability_scores(
+    [ph_level, nitrogen, phosphorus, potassium, rainfall, season_encoded]
+  )
+  recommended = [s for s in scores if s['score'] >= 0.3]
+  return recommended[:5]
+```
+
+```python
+# recommendation_engine.py (scoring core)
 def calculate_suitability_scores(self, input_data):
-    crops = Crop.objects.all()  # Fetch all crops from database with their optimal ranges
+  crops = Crop.objects.all()
+  # For each crop: season check -> parameter scores -> weighted average -> ranking
 ```
 
-#### Step 2: Input Parameter Preparation
+How data is persisted:
+1. User input is stored in SoilData.
+2. Final recommendation metadata is stored in CropRecommendation.
+3. Each ranked crop score is stored in RecommendationScore.
 
-**What the algorithm needs?**
-- User's soil test results (pH, N, P, K, rainfall)
-- Current season selection
-- Each crop's optimal ranges from database
-- No training data or ML model required!
+How data is shown in app (frontend flow):
+1. Form screen sends data to provider.
+2. Provider calls service.
+3. Service calls POST crops/recommend API.
+4. JSON response is mapped to Recommendation model.
+5. Provider stores currentRecommendation and notifies listeners.
+6. Result screen reads provider state and renders recommendation values.
 
-**Process**:
-```python
-# User inputs are directly used - no training needed!
-ph, n, p, k, rainfall, season = input_data
+Minimal frontend path snippet:
 
-# For each crop, we compare user values against optimal ranges
-for crop in crops:
-    # Check if user's season matches crop's suitable seasons
-    seasons = [s.strip().lower() for s in crop.suitable_seasons.split(',')]
-    if user_season not in seasons:
-        continue  # Skip this crop
-    
-    # Calculate how well user's parameters match crop requirements
-    ph_score = calculate_match(user_ph, crop.min_ph, crop.max_ph)
-    n_score = calculate_match(user_n, crop.min_nitrogen, crop.max_nitrogen)
-    # ... and so on
+```dart
+// crop_service.dart
+final response = await ApiService.post("crops/recommend/", data);
+return Recommendation.fromJson(response['recommendation']);
 ```
 
-**Example**: For Rice when user provides pH=6.2:
-- Rice optimal pH: 5.5 - 7.0
-- User's pH (6.2) falls within range
-- Score: 1.0 (perfect match!)
-
-**No Training Required**: 
-- Algorithm directly compares user input vs. crop requirements
-- Pure rule-based logic - no machine learning involved
-
-#### Step 3: Feature Encoding
-
-**Season Encoding** (Ordinal Encoding):
-```python
-season_map = {
-    'spring': 0,
-    'summer': 1,
-    'monsoon': 2,
-    'autumn': 3,
-    'winter': 4
-}
+```dart
+// crop_provider.dart
+_currentRecommendation = await CropService.getRecommendation(data);
+notifyListeners();
 ```
 
-**Why ordinal encoding for seasons?**
-- Seasons have a natural order/cycle
-- Easier for Decision Tree to split on
-
-#### Step 4: Label Encoding
-
-**Crop Names** → **Numeric Labels**:
-```python
-y = self.label_encoder.fit_transform(labels)
+```dart
+// crop_result_screen.dart
+final recommendation = cropProvider.currentRecommendation;
+Text(recommendation?.cropName ?? 'N/A')
 ```
 
-Example:
-- Rice → 0
-- Wheat → 1
-- Maize → 2
-- etc.
+One-line viva answer:
+"Recommendation data comes from Crop requirement ranges in the database plus user soil input; the algorithm is executed in crop_recommendation/recommendation_engine.py via predict -> calculate_suitability_scores, and the result is returned by the recommend API then shown by Flutter Provider state in the result screen."
 
-#### Step 5: Feature Matrix Creation
 
-**Final preprocessed data structure**:
-```python
-X = np.array(training_data)  # Shape: (n_samples, 6)
-# Features: [pH, N, P, K, Rainfall, Season]
+## 5. Nearest Market Finder Logic
 
-y = np.array(labels)  # Shape: (n_samples,)
-# Labels: Crop names encoded as integers
-```
+### 5.1 Formula Used
+Haversine distance between user lat/lon and market lat/lon.
+
+### 5.2 API Flow
+1. User calls POST /api/markets/find-nearest/
+2. Request validated (lat/lon, optional district, max_results)
+3. Active markets fetched, optionally district-filtered
+4. Distances computed and sorted
+5. Search history persisted
+6. Results returned with estimated travel time
+
+### 5.3 Complexity Note
+- Distance calculation: O(n) over filtered markets
+- Sorting: O(n log n)
+- Overall dominated by sorting for larger n
+
+
+## 6. Data Model Defense Points
+
+Key entities to mention in viva:
+- CustomUser, UserProfile
+- Crop
+- SoilData
+- CropRecommendation
+- RecommendationScore (through/ranking table)
+- Market
+- MarketPrice
+- MarketSearch
+
+Why RecommendationScore exists:
+- Stores per-crop score and rank per recommendation event
+- Makes output traceable and auditable
+
+
+## 7. API Surface (High Value Endpoints)
+
+Authentication:
+- POST /api/auth/register/
+- POST /api/auth/login/
+- POST /api/auth/logout/
+- GET/PUT/PATCH /api/auth/profile/
+- GET/PUT/PATCH /api/auth/profile/detail/
+- GET /api/auth/users/ (admin)
+- DELETE /api/auth/users/<id>/ (admin)
+
+Crop module:
+- /api/crops/crops/
+- /api/crops/soil-data/
+- POST /api/crops/recommend/
+- GET /api/crops/recommendations/
+- GET /api/crops/recommendations/<id>/
+- GET /api/crops/search/?search=<term>
+
+Market module:
+- /api/markets/markets/
+- /api/markets/prices/
+- POST /api/markets/find-nearest/
+- GET /api/markets/search-history/
+- GET /api/markets/by-district/?district=<name>
+- GET /api/markets/markets/<market_id>/prices/
+
+Docs:
+- /swagger/
+- /redoc/
+
+
+## 8. Demo Plan for External Examiner
+
+1. Start backend and open Swagger.
+2. Register user and login to obtain token.
+3. Authorize token in Swagger.
+4. Call crop recommendation endpoint with sample values.
+5. Show recommendation history endpoint.
+6. Call nearest market endpoint with sample coordinates.
+7. Show search-history endpoint.
+8. Login as admin and demonstrate one admin-only CRUD operation.
+9. Show permission denial behavior with non-admin token.
+10. Explain algorithm path from request to stored ranking.
+
+
+## 9. Deep Viva Questions and Strong Answers
+
+### 9.1 Architecture and Design
+
+1) Q: Why did you choose Flutter + Django instead of an all-JS stack?
+A: Flutter gives a consistent mobile UI and strong DX for forms/stateful screens; Django REST gives robust auth, ORM, and fast API development. For this scope, separation was productive and maintainable.
+
+2) Q: Why split backend into 3 apps?
+A: To separate concerns: authentication, recommendation, and market logic evolve independently, making testing, permissions, and maintenance cleaner.
+
+3) Q: Which architectural pattern is this backend following?
+A: Practical layered architecture with domain modules: serializer (validation), view (orchestration), model (persistence), utility/engine (algorithmic logic).
+
+4) Q: Where is business logic placed and why?
+A: Recommendation and market distance logic are in engine/utility modules to avoid fat views and keep logic testable and reusable.
+
+5) Q: How does the mobile app stay decoupled from backend internals?
+A: Through stable REST contracts and JSON payloads. Frontend only depends on endpoint contracts, not ORM/model internals.
+
+### 9.2 Recommendation Algorithm
+
+6) Q: Is recommendation ML or rule-based?
+A: Current API prediction path is rule-based scoring. ML training utilities exist but are not the primary runtime decision path.
+
+7) Q: Why keep ML utilities if runtime is rule-based?
+A: They support future experimentation and comparison, but current deployment prioritizes explainability and deterministic behavior.
+
+8) Q: Explain the scoring function in one sentence.
+A: Each parameter gets a score based on distance to crop-optimal range; the overall crop score is the mean of parameter scores.
+
+9) Q: Why equal weights for pH, N, P, K, rainfall?
+A: Simplicity and interpretability for baseline version. Weight tuning is a planned extension once field feedback accumulates.
+
+10) Q: What is the threshold role (around 0.3)?
+A: It filters low-quality matches. If all are low, fallback keeps top options to avoid empty output and preserve user guidance.
+
+11) Q: What are algorithm strengths?
+A: Explainable, deterministic, low-data dependency, easy to validate with domain experts.
+
+12) Q: What are algorithm weaknesses?
+A: Static thresholds/weights, no adaptive learning from outcomes, sensitivity to curated range quality.
+
+13) Q: How would you validate recommendation quality scientifically?
+A: Collect farmer outcomes (yield, failure rates), run offline evaluation against baseline methods, and calibrate ranges/weights or add hybrid ML.
+
+14) Q: How do you handle season mismatch?
+A: Crops not suitable for the selected season are skipped before scoring.
+
+15) Q: Why is confidence score top recommendation score?
+A: It is a simple proxy for best fit quality. Future versions can include margin-based confidence and uncertainty bands.
+
+16) Q: Can this algorithm overfit?
+A: Not in ML sense, since runtime path is deterministic rules; quality risk is from poorly specified ranges, not overfitting.
+
+17) Q: How do you support explainability to non-technical users?
+A: By showing parameter-wise fit messages and rank/score. This can be further improved with reason codes per parameter.
+
+18) Q: Why store recommendation results instead of recomputing always?
+A: Auditability, user history, reproducibility, and analytics.
+
+19) Q: If two crops tie in score, how is ranking handled?
+A: Sorting is deterministic by score order; explicit tie-break strategies can be added (market price, growth duration, local preference).
+
+20) Q: What happens if crop table is empty?
+A: Recommendation cannot produce valid output; system returns error/no suitable crop response path.
+
+### 9.3 Input Validation and Data Integrity
+
+21) Q: How do you prevent impossible pH values?
+A: Serializer enforces min/max bounds (0 to 14).
+
+22) Q: How do you prevent negative nutrient values?
+A: Serializer uses min_value=0 for N, P, K, and rainfall.
+
+23) Q: How do you restrict humidity values?
+A: Humidity validator uses 0 to 100.
+
+24) Q: Why validate at serializer layer?
+A: Centralized API boundary validation with clear client errors before business logic execution.
+
+25) Q: What ensures soil records are user-scoped?
+A: SoilDataViewSet queryset filters by request.user.
+
+26) Q: Could one user read another user's recommendation detail?
+A: Recommendation detail queryset is user-filtered, preventing cross-user access.
+
+27) Q: Are model constraints enough, or do you need serializer checks too?
+A: Both are useful: serializer for API input clarity and model constraints for persistence-level safety.
+
+### 9.4 Security and Auth
+
+28) Q: Why token auth instead of JWT?
+A: DRF Token is simpler for this scope and sufficient for session-like mobile API access; JWT can be added later for advanced token lifecycle.
+
+29) Q: Where are admin restrictions enforced?
+A: In view permissions (IsAdminUser) for admin-sensitive CRUD actions.
+
+30) Q: What are current security weaknesses in settings?
+A: Development config has DEBUG=True, ALLOWED_HOSTS='*', and CORS_ALLOW_ALL_ORIGINS=True. Production hardening is required.
+
+31) Q: How do you invalidate user session?
+A: Logout endpoint deletes auth token.
+
+32) Q: Why keep SessionAuthentication with TokenAuthentication?
+A: Supports browsable API/dev convenience while token supports mobile client.
+
+33) Q: What is one immediate production fix?
+A: Disable DEBUG, restrict hosts/CORS, rotate secrets, and enforce HTTPS.
+
+### 9.5 Market Finder and Geo Logic
+
+34) Q: Why Haversine instead of Euclidean distance?
+A: Haversine approximates great-circle distance on Earth, suitable for latitude/longitude points.
+
+35) Q: Why not road-network distance?
+A: Requires map routing APIs or road graph data. Haversine is simpler and acceptable baseline for nearest estimation.
+
+36) Q: Can district filtering hide closer markets in neighboring districts?
+A: Yes, district filter narrows candidate set intentionally. User can search without district for strict nearest.
+
+37) Q: How is travel time estimated?
+A: A simple average speed assumption converts distance to minutes. It is an estimate, not live traffic routing.
+
+38) Q: What if no active markets match?
+A: API returns not found style response with guidance message.
+
+39) Q: Complexity of nearest search?
+A: O(n) distance computations + O(n log n) sorting.
+
+40) Q: How to optimize for large market datasets?
+A: Use spatial indexing/geohash prefiltering, bounding boxes, and database-level geospatial queries.
+
+### 9.6 Database and Persistence
+
+41) Q: Why SQLite currently?
+A: Simplicity for development and academic demonstration.
+
+42) Q: Why might SQLite be a bottleneck in production?
+A: Write concurrency and scaling constraints for high traffic.
+
+43) Q: Recommended production migration target?
+A: PostgreSQL or MySQL with managed backups and monitoring.
+
+44) Q: Why normalize recommendation scores into separate table?
+A: Supports one-to-many ranking records per recommendation event.
+
+45) Q: How do you ensure historical traceability?
+A: Each recommendation/search event is persisted with timestamp and linked entities.
+
+46) Q: What backup strategy would you propose?
+A: Daily snapshots, point-in-time recovery where possible, and migration/versioned schema management.
+
+### 9.7 API and Error Handling
+
+47) Q: How does the recommendation endpoint handle runtime failures?
+A: Wraps generation in try/except and returns 500 with error message and saved soil_data_id for traceability.
+
+48) Q: Why save SoilData before recommendation computation?
+A: Preserves user input event even if recommendation fails; useful for diagnostics/history.
+
+49) Q: Is returning raw exception text safe?
+A: Useful in development but should be sanitized in production to avoid leakage.
+
+50) Q: How are API docs generated?
+A: drf-yasg schema generation with Swagger and ReDoc routes.
+
+51) Q: Why include request/response examples in swagger annotations?
+A: Improves API usability, testing speed, and examiner clarity.
+
+52) Q: How do you version APIs?
+A: Current endpoints are grouped by module; formal versioning strategy (v1 path namespace) can be introduced for long-term compatibility.
+
+### 9.8 Testing Strategy
+
+53) Q: What levels of testing are needed here?
+A: Unit (serializers/engines), integration (API + DB), and end-to-end flows from auth to recommendation/market history.
+
+54) Q: Which edge cases are critical for recommendation tests?
+A: Boundary pH values, zero nutrients, out-of-range rainfall, season mismatch, empty crop dataset.
+
+55) Q: Which edge cases are critical for market tests?
+A: Invalid coordinates, no markets found, district filter edge, max_results limits.
+
+56) Q: What security tests should be included?
+A: Unauthorized access checks, admin endpoint denial for non-admin tokens, token invalidation behavior.
+
+57) Q: How do you test data isolation?
+A: Verify user A cannot access user B soil/recommendation/search history.
+
+58) Q: What is one regression risk after algorithm changes?
+A: Score distribution shifts affecting rank stability and user trust; requires baseline comparison tests.
+
+### 9.9 Performance and Scalability
+
+59) Q: Current likely bottlenecks?
+A: Per-request crop scoring loop for larger datasets, nearest search sorting for large market lists, unoptimized dev DB.
+
+60) Q: How to improve recommendation throughput?
+A: Cache crop requirement structures, optimize query patterns, precompute normalization constants.
+
+61) Q: How to improve nearest market throughput?
+A: Geospatial indexing and candidate prefiltering before sorting.
+
+62) Q: Would async tasks help?
+A: Yes for non-blocking heavy computations/analytics, though current real-time scoring is lightweight.
+
+63) Q: What metrics would you monitor in production?
+A: Request latency, error rates, DB query time, recommendation success rate, auth failures.
+
+### 9.10 Product and Domain Questions
+
+64) Q: Why is explainability crucial for farmers?
+A: Advisory trust depends on understandable reasons, not black-box outputs.
+
+65) Q: How do you localize for Nepali farming contexts?
+A: Curated crops, district fields, and planned local language support.
+
+66) Q: What happens if user input quality is poor?
+A: Recommendation quality degrades; system should add validation hints and guidance prompts.
+
+67) Q: Can user preferences be integrated?
+A: Yes, as secondary ranking factors (market price, growth duration, preferred crops).
+
+68) Q: How would you incorporate weather forecast?
+A: Add forecast API ingestion and adjust scoring with forecast-aware modifiers.
+
+69) Q: How can recommendation fairness be discussed?
+A: Ensure no arbitrary bias in ranking factors, keep logic transparent and auditable.
+
+70) Q: What is the practical impact of market module?
+A: Translates recommendation into action by reducing market discovery friction.
+
+### 9.11 Deployment and Operations
+
+71) Q: Minimal production checklist?
+A: DEBUG false, restricted hosts/CORS, HTTPS, secret management, DB migration, logging, backups, health checks.
+
+72) Q: How do you handle configuration differences by environment?
+A: Use environment variables and split settings modules.
+
+73) Q: Why add centralized logging?
+A: For diagnosis, incident response, and quality auditing.
+
+74) Q: What CI checks should run on every commit?
+A: Lint, unit tests, API contract tests, and migration checks.
+
+75) Q: How would you roll out schema changes safely?
+A: Backward-compatible migrations, staged deployment, and rollback plan.
+
+### 9.12 Advanced Follow-Up Questions
+
+76) Q: If an examiner says this is not Decision Tree in production, how do you answer?
+A: Correct. Runtime ranking currently uses deterministic rule scoring. DecisionTreeClassifier utilities exist as optional/future path. The report should clearly separate present runtime logic from experimental components.
+
+77) Q: Why still store algorithm_used as "Decision Tree"?
+A: Historical naming in model record. It should be revised to reflect actual runtime strategy (for example "Rule-Based Scoring") to avoid ambiguity.
+
+78) Q: How would you compare rule-based vs ML objectively?
+A: Use held-out outcome dataset and compare recommendation precision/recall or yield-oriented utility metrics, plus explainability and maintenance cost.
+
+79) Q: What is your plan to move from heuristic to hybrid model?
+A: Keep rule-based baseline, collect outcome labels, build hybrid ranker combining hard agronomic constraints + learned reranking.
+
+80) Q: How would you defend this as academically valid?
+A: It is a complete software-engineering solution with domain-driven algorithm design, validated API architecture, role-based security, persistence, and explainable decision logic.
+
+### 9.13 Previous Questions (Retained) With Updated Answers
+
+These are the earlier common viva questions retained intentionally, with answers updated to match current implementation flow.
+
+Q: Is this a Machine Learning project?
+A: The current runtime recommendation flow is rule-based scoring. The engine compares user soil values against crop requirement ranges and ranks crops. DecisionTreeClassifier utilities exist in code, but the live recommend API path uses predict -> calculate_suitability_scores.
+
+Q: Why not use Machine Learning directly in production flow?
+A: For the current version, explainability and deterministic output were prioritized. The rule-based method is transparent for farmers and easy to validate with crop requirement ranges. ML utilities are kept for future experiments when larger real outcome data is available.
+
+Q: How does the algorithm work?
+A: User submits pH, N, P, K, rainfall, season. Backend filters crops by season, computes per-parameter suitability scores, averages them with equal weight, sorts descending, filters weak matches, stores ranking, and returns top results.
+
+Q: What if user enters invalid input data?
+A: Serializer validation rejects invalid payloads (for example pH outside 0-14, negative nutrients, humidity outside 0-100). The API returns validation errors before recommendation logic runs.
+
+Q: How accurate is the system?
+A: Accuracy depends on quality of crop requirement ranges and user input quality. Since logic is deterministic and range-based, recommendations are consistent and explainable. For stronger scientific accuracy claims, field outcome data and comparative evaluation are planned.
+
+Q: From where is data being recommended?
+A: From Crop requirement records in the database (seeded data) plus live user soil input submitted at recommend endpoint. The algorithm uses both to compute score and ranking.
+
+Q: Where is the algorithm used in code?
+A: In crop_recommendation/views.py the recommend endpoint calls crop_recommendation_engine.predict(...). Inside recommendation_engine.py, predict invokes calculate_suitability_scores, which performs runtime scoring and ranking.
+
+Q: How is the recommended data shown in app?
+A: API response is mapped in crop_service.dart, saved in CropProvider as currentRecommendation, and rendered in crop_result_screen.dart after notifyListeners triggers UI rebuild.
+
+
+## 10. Short High-Impact Answers (Use in Rapid Viva)
+
+- "Current recommendation path is deterministic and explainable, not black-box ML."
+- "Prediction and persistence are auditable through recommendation and score tables."
+- "Security is token-based with explicit admin-only controls on sensitive CRUD routes."
+- "Nearest market search uses Haversine baseline; road-network routing is future work."
+- "The architecture is modular and can evolve to hybrid intelligence without rewriting core APIs."
+
+
+## 11. Known Gaps and Honest Defense
+
+- Development settings are not hardened for production yet.
+- Dataset size is limited and curated; scaling needs richer regional data.
+- Travel-time estimate is heuristic, not live traffic aware.
+- Algorithm metadata label in records should be aligned with actual runtime logic.
+
+These do not invalidate the project; they define clear and defensible future roadmap items.
+
+
+## 12. Final Defense Statement
+
+AgriNova is a practical, explainable, and modular advisory platform that solves a real
+workflow gap by combining crop recommendation and market discovery in one mobile-backed
+system. The project demonstrates strong full-stack engineering, defensible algorithmic
+choices, and a credible path for production and research-grade enhancements.
 
 ---
-
-## 4. How the Recommendation Algorithm Works
-
-### 4.1 The Complete Recommendation Algorithm
-
-**Location**: `/agri_python/crop_recommendation/recommendation_engine.py`
-
-**THE ALGORITHM**: `calculate_suitability_scores()` - Lines 99-150
-- **This method IS the crop recommendation algorithm**
-- **Input**: Soil parameters (pH, N, P, K, rainfall, season)
-- **Output**: Ranked list of recommended crops with scores
-- **Type**: Rule-based scoring (no machine learning)
-
-**Helper Method**: `_calculate_parameter_score()` - Lines 170-196
-- Calculates individual parameter scores
-- Part of the recommendation algorithm
-
-### 4.2 Algorithm Steps (No ML Required!)
-
-#### Step 1: Get User Input
-```python
-ph, n, p, k, rainfall, season = input_data
-```
-- User provides soil test results
-- No training data needed!
-
-#### Step 2: Loop Through All Crops
-```python
-for crop in Crop.objects.all():
-    # Check each crop's suitability
-```
-
-**Algorithm Logic**:
-
-1. **Season Filter**: Check if crop can grow in user's season
-   ```python
-   if user_season not in crop.suitable_seasons:
-       skip this crop
-   ```
-
-2. **Parameter Scoring**: For each soil parameter (pH, N, P, K, rainfall)
-   ```python
-   if user_value in [crop.min, crop.max]:
-       score = 1.0  # Perfect match
-   else if user_value outside range:
-       score = calculate_penalty  # Decrease based on distance
-   ```
-
-3. **Overall Score**: Weighted average
-   ```python
-   overall_score = (ph_score + n_score + p_score + k_score + rain_score) / 5
-   ```
-
-#### Step 3: Scoring Formula
-
-**For each parameter**:
-
-```
-IF value is within [min, max] range:
-    score = 1.0 (100% match)
-    
-ELSE IF value is below min:
-    distance = min - value
-    penalty_factor = min × 0.5
-    score = max(0, 1.0 - distance/penalty_factor)
-    
-ELSE IF value is above max:
-    distance = value - max
-    penalty_factor = max × 0.5
-    score = max(0, 1.0 - distance/penalty_factor)
-```
-
-**Example**:
-- Rice optimal pH: 5.5 - 7.0
-- User pH = 6.2 → **Score = 1.0** (within range)
-- User pH = 7.5 → **Score = 0.857** (slightly high)
-- User pH = 9.0 → **Score = 0.0** (too high)
-
-#### Step 4: Ranking
-
-```python
-# Sort all crops by score (highest first)
-scores.sort(reverse=True)
-
-# Filter low-scoring crops (< 0.3)
-recommended = [crop for crop in scores if crop.score >= 0.3]
-
-# Return top 5
-return recommended[:5]
-```
-
-### 5.3 Why This Algorithm is Better Than ML
-
-**Advantages of Rule-Based Approach**:
-
-1. **Transparency**: Users can see exactly why a crop scored high/low
-2. **No Training Required**: Works immediately with crop database
-3. **Explainable**: "Rice scored 100% because all your parameters are in optimal range"
-4. **Easy to Update**: Just modify crop requirements in database
-5. **Deterministic**: Same input always gives same output
-6. **No Overfitting**: Doesn't memorize training data
-7. **Works with Small Dataset**: Only needs 12 crops in database
-
-### 5.4 When Does the Recommendation Algorithm Run?
-
-**Algorithm runs ON-DEMAND**:
-1. User submits soil test data
-2. System immediately calculates scores
-3. Returns recommendations in real-time
-4. No pre-training needed!
-
-**Code flow**:
-```python
-# In views.py, when user requests recommendation:
-recommendations = crop_recommendation_engine.predict(...)
-    ↓
-# Directly calls calculate_suitability_scores()
-# No ML model involved!
-```
-
----
-
-## 5. Recommendation Algorithm - Detailed Walkthrough
-
-### 5.1 Understanding the Algorithm
-
-**THE CROP RECOMMENDATION ALGORITHM** uses rule-based scoring (not ML):
-
-#### The Algorithm: `calculate_suitability_scores()`
-- **Location**: Lines 99-150 in `recommendation_engine.py`
-- **Purpose**: THE crop recommendation algorithm - recommends crops based on soil parameters
-- **Type**: Rule-based, deterministic scoring algorithm
-- **Advantages**: Transparent, explainable, no training required
-- **This IS the recommendation algorithm - it's the only algorithm used in production**
-
-#### Optional ML Component (Implemented but NOT Used)
-- Decision Tree code exists in the codebase
-- Was implemented as an alternative approach
-- The rule-based scoring proved more suitable
-- ML code remains for potential future enhancements
-
-### 6.2 The Recommendation Algorithm Logic (Step-by-Step)
-
-#### Input Parameters:
-```python
-def calculate_suitability_scores(self, input_data):
-    ph, n, p, k, rainfall, season = input_data
-```
-
-#### Step 1: Season Filtering
-```python
-for crop in crops:
-    seasons = [s.strip().lower() for s in crop.suitable_seasons.split(',')]
-    input_season = season_names[int(season)]
-    
-    if input_season not in seasons:
-        continue  # Skip crops not suitable for this season
-```
-
-**Why?** Eliminates crops that cannot grow in the specified season.
-
-#### Step 2: Parameter Score Calculation
-
-For each crop and each parameter (pH, N, P, K, Rainfall):
-
-```python
-ph_score = self._calculate_parameter_score(ph, crop.min_ph, crop.max_ph)
-n_score = self._calculate_parameter_score(n, crop.min_nitrogen, crop.max_nitrogen)
-p_score = self._calculate_parameter_score(p, crop.min_phosphorus, crop.max_phosphorus)
-k_score = self._calculate_parameter_score(k, crop.min_potassium, crop.max_potassium)
-rain_score = self._calculate_parameter_score(rainfall, crop.min_rainfall, crop.max_rainfall)
-```
-
-**Scoring Logic** (Lines 170-196):
-```python
-def _calculate_parameter_score(self, value, min_val, max_val):
-    # Case 1: Value within optimal range → Perfect score
-    if min_val <= value <= max_val:
-        return 1.0
-    
-    # Case 2: Value outside range → Calculate penalty
-    if value < min_val:
-        distance = min_val - value
-        penalty_factor = min_val * 0.5  # 50% deviation threshold
-    else:
-        distance = value - max_val
-        penalty_factor = max_val * 0.5
-    
-    # Score decreases linearly with distance
-    score = max(0.0, 1.0 - (distance / penalty_factor))
-    return score
-```
-
-**Example**:
-- Optimal pH for Rice: 5.5 - 7.0
-- User's pH: 6.2 → Score = 1.0 (within range)
-- User's pH: 7.5 → Score = 0.833 (slightly high, 0.5 units above max)
-- User's pH: 9.0 → Score = 0.0 (too high, beyond penalty threshold)
-
-#### Step 3: Overall Score Calculation
-
-**Weighted Average**:
-```python
-overall_score = (
-    ph_score * 0.2 +      # 20% weight
-    n_score * 0.2 +       # 20% weight
-    p_score * 0.2 +       # 20% weight
-    k_score * 0.2 +       # 20% weight
-    rain_score * 0.2      # 20% weight
-)
-```
-
-**Why equal weights (0.2 each)?**
-- All parameters are equally important for crop growth
-- No single parameter should dominate
-- Can be adjusted based on domain expert feedback
-
-#### Step 4: Ranking and Filtering
-
-```python
-# Sort by score descending
-scores.sort(key=lambda x: x['score'], reverse=True)
-
-# Add ranking
-for idx, item in enumerate(scores, 1):
-    item['ranking'] = idx
-
-# Filter low scores (< 0.3)
-recommended = [s for s in scores if s['score'] >= 0.3]
-
-# Return top 5
-return recommended[:5]
-```
-
-**Filtering logic**:
-- Crops with score < 0.3 (30%) are considered unsuitable
-- If no crops score above 0.3, return top 3 anyway
-- Maximum 5 recommendations returned
-
-#### Step 5: Confidence Score
-
-```python
-def get_confidence_score(self, recommendations):
-    if not recommendations:
-        return 0.0
-    
-    # Confidence = Top recommendation's score
-    top_score = recommendations[0]['score']
-    return round(top_score, 3)
-```
-
-**Interpretation**:
-- Confidence 0.9-1.0: Excellent match
-- Confidence 0.7-0.9: Good match
-- Confidence 0.5-0.7: Moderate match
-- Confidence < 0.5: Poor match
-
----
-
-## 6. Complete Working Example
-
-Let's trace through a complete recommendation request:
-
-### 6.1 User Input (Farmer from Kathmandu)
-
-```json
-{
-  "ph_level": 6.2,
-  "nitrogen": 100,
-  "phosphorus": 50,
-  "potassium": 50,
-  "rainfall": 1800,
-  "season": "monsoon",
-  "district": "Kathmandu"
-}
-```
-
-### 6.2 Step-by-Step Processing
-
-#### **Step 1: API Request Received**
-- Endpoint: `POST /api/crops/recommend/`
-- User authenticated via Token
-- Data validated by serializer
-
-#### **Step 2: Save Soil Data**
-```python
-soil_data = SoilData.objects.create(
-    user=request.user,
-    ph_level=6.2,
-    nitrogen=100,
-    phosphorus=50,
-    potassium=50,
-    rainfall=1800,
-    district="Kathmandu",
-    season="monsoon"
-)
-```
-
-#### **Step 3: Encode Season**
-```python
-season_encoded = _encode_season("monsoon")  # Returns 2
-```
-
-#### **Step 4: Calculate Scores for Each Crop**
-
-**For Rice**:
-- Suitable seasons: ['monsoon', 'summer'] ✓ **PASS**
-- pH score: 6.2 in [5.5, 7.0] → **1.0**
-- N score: 100 in [80, 120] → **1.0**
-- P score: 50 in [40, 60] → **1.0**
-- K score: 50 in [40, 60] → **1.0**
-- Rainfall score: 1800 in [1200, 2500] → **1.0**
-- **Overall: (1.0 + 1.0 + 1.0 + 1.0 + 1.0) × 0.2 = 1.0**
-
-**For Wheat**:
-- Suitable seasons: ['winter', 'autumn'] ✗ **FAIL (Skip)**
-
-**For Maize**:
-- Suitable seasons: ['summer', 'spring'] ✗ **FAIL (Skip)**
-
-**For Tomato**:
-- Suitable seasons: ['spring', 'summer', 'autumn'] ✗ **FAIL (Skip)**
-
-**For Chili**:
-- Suitable seasons: ['summer', 'monsoon'] ✓ **PASS**
-- pH score: 6.2 in [6.0, 7.0] → **1.0**
-- N score: 100 in [80, 120] → **1.0**
-- P score: 50 in [50, 70] → **1.0**
-- K score: 50 in [60, 80] → **0.833** (slightly low)
-- Rainfall score: 1800 in [600, 1250] → **0.346** (too high, beyond max)
-- **Overall: (1.0 + 1.0 + 1.0 + 0.833 + 0.346) × 0.2 = 0.836**
-
-**For Cucumber**:
-- Suitable seasons: ['summer', 'spring'] ✗ **FAIL (Skip)**
-
-**For Potato, Cauliflower, Cabbage, Lentil, Mustard, Onion**:
-- All are winter/autumn crops ✗ **FAIL (Skip)**
-
-#### **Step 5: Ranking**
-
-After scoring all crops:
-```
-1. Rice       - Score: 1.000 - Rank: 1
-2. Chili      - Score: 0.836 - Rank: 2
-(Other monsoon-compatible crops would be scored here)
-```
-
-#### **Step 6: Save Recommendation**
-
-```python
-crop_recommendation = CropRecommendation.objects.create(
-    user=request.user,
-    soil_data=soil_data,
-    algorithm_used='Decision Tree',
-    confidence_score=1.0  # Top score
-)
-
-# Save each crop with score
-RecommendationScore.objects.create(
-    recommendation=crop_recommendation,
-    crop=rice_crop,
-    score=1.0,
-    ranking=1
-)
-
-RecommendationScore.objects.create(
-    recommendation=crop_recommendation,
-    crop=chili_crop,
-    score=0.836,
-    ranking=2
-)
-```
-
-#### **Step 7: API Response**
-
-```json
-{
-  "recommendation": {
-    "id": 1,
-    "user": "farmer1",
-    "confidence_score": 1.0,
-    "algorithm_used": "Decision Tree",
-    "recommended_crops_details": [
-      {
-        "crop_id": 1,
-        "crop_name": "Rice",
-        "scientific_name": "Oryza sativa",
-        "score": 1.0,
-        "ranking": 1,
-        "growth_duration": 120,
-        "yield_per_hectare": 4000,
-        "market_price": 35,
-        "description": "Staple cereal crop requiring flooded fields"
-      },
-      {
-        "crop_id": 12,
-        "crop_name": "Chili",
-        "scientific_name": "Capsicum annuum",
-        "score": 0.836,
-        "ranking": 2,
-        "growth_duration": 120,
-        "yield_per_hectare": 10000,
-        "market_price": 80,
-        "description": "Hot pepper, requires warm climate"
-      }
-    ],
-    "created_at": "2025-12-26T10:30:00Z"
-  },
-  "message": "Crop recommendation generated successfully"
-}
-```
-
-### 6.3 User Sees on Mobile App
-
-```
-╔═══════════════════════════════════╗
-║   Crop Recommendations            ║
-║   Confidence: 100%                ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  #1 🌾 Rice                       ║
-║  Suitability: 100%                ║
-║  Expected Yield: 4,000 kg/hectare ║
-║  Market Price: NPR 35/kg          ║
-║  Growth: 120 days                 ║
-║                                   ║
-║  [View Details] [Plant Now]       ║
-║                                   ║
-╟───────────────────────────────────╢
-║                                   ║
-║  #2 🌶️ Chili                      ║
-║  Suitability: 84%                 ║
-║  Expected Yield: 10,000 kg/hectare║
-║  Market Price: NPR 80/kg          ║
-║  Growth: 120 days                 ║
-║  ⚠️ Note: Rainfall slightly high  ║
-║                                   ║
-║  [View Details] [Maybe Later]     ║
-║                                   ║
-╚═══════════════════════════════════╝
-```
-
----
-
-## 7. Algorithm Flow Diagram
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    User Input                               │
-│  pH, N, P, K, Rainfall, Season, District                    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Validate & Save to Database                    │
-│              (SoilData model)                               │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Encode Season (String → Number)                │
-│              monsoon → 2                                    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│         Fetch All Crops from Database (12 crops)            │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-         ┌────────────┴────────────┐
-         │                         │
-         ▼                         ▼
-┌────────────────┐      ┌────────────────────┐
-│  For Each Crop │      │  Check Season      │
-│  in Database   │──────▶  Compatibility     │
-└────────────────┘      └─────────┬──────────┘
-                                  │
-                        ┌─────────┴─────────┐
-                        │                   │
-                    Not Suitable        Suitable
-                        │                   │
-                        ▼                   ▼
-                   ┌─────────┐    ┌──────────────────────┐
-                   │  Skip   │    │  Calculate Scores    │
-                   │  Crop   │    │  • pH Score          │
-                   └─────────┘    │  • N Score           │
-                                  │  • P Score           │
-                                  │  • K Score           │
-                                  │  • Rainfall Score    │
-                                  └──────────┬───────────┘
-                                             │
-                                             ▼
-                                  ┌──────────────────────┐
-                                  │  Weighted Average    │
-                                  │  Overall = Σ(score×0.2) │
-                                  └──────────┬───────────┘
-                                             │
-                      ┌──────────────────────┴──────────┐
-                      │    Store Score & Crop Details   │
-                      └──────────────────┬──────────────┘
-                                         │
-                    After all crops processed
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Sort All Scores (Descending)    │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Filter Scores >= 0.3 (30%)      │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Select Top 5 Crops              │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Assign Rankings (1, 2, 3, 4, 5) │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Calculate Confidence Score      │
-                      │  (= Top crop's score)            │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Save to CropRecommendation      │
-                      │  & RecommendationScore tables    │
-                      └──────────────────┬───────────────┘
-                                         │
-                                         ▼
-                      ┌──────────────────────────────────┐
-                      │  Return JSON Response to User    │
-                      └──────────────────────────────────┘
-```
-
----
-
-## 8. Key Technical Points for Examiner
-
-### 8.1 Why Rule-Based Algorithm (Not ML)?
-
-1. **Transparency**: Farmers can understand exactly why a crop is recommended
-2. **Explainability**: "Your pH is 6.2, which is perfect for Rice (optimal: 5.5-7.0)"
-3. **No Training Data Required**: Works immediately with crop requirements from research
-4. **Deterministic**: Same soil conditions always give same recommendations
-5. **Easy to Validate**: Agricultural experts can verify the logic
-6. **Fast**: No model loading or training - instant results
-7. **Updatable**: Just modify crop requirements in database, no retraining
-
-### 8.2 Why This is Better Than Machine Learning?
-
-1. **No Historical Data Available**: New system, no past farmer outcomes
-2. **Domain Knowledge Available**: Agricultural research provides exact optimal ranges
-3. **Trust**: Farmers can verify recommendations against known crop requirements
-4. **Maintenance**: No model drift, no need for retraining
-5. **Small Dataset**: Only 12 crops - not enough for robust ML training
-
-### 8.3 Algorithm Classification
-
-**This is a Traditional Computer Science Algorithm**:
-
-- **Type**: Rule-based scoring system with weighted averages
-- **Category**: Information retrieval / Ranking algorithm
-- **Similar to**: Search engine ranking, recommendation filters
-- **NOT**: Machine learning, neural networks, or statistical learning
-- **Suitable for**: Final year project requirements without ML dependency
-
-### 8.4 System Scalability
-
-**How to improve with more data?**
-
-1. **Collect Real Usage Data**: As farmers use the system
-2. **Refine Scoring Weights**: Adjust parameter weights (currently 20% each) based on farmer feedback
-3. **Add Features**: Temperature, humidity, soil texture, elevation
-4. **Regional Customization**: Different scoring for Terai vs. Hills vs. Mountains
-5. **Optional ML Enhancement**: Could add ML layer for yield prediction (separate from core algorithm)
-
----
-
-## 9. File Structure Summary
-
-```
-agri_python/
-├── crop_recommendation/
-│   ├── models.py                    # Database models
-│   ├── views.py                     # API endpoints
-│   ├── recommendation_engine.py     # ML algorithm (MAIN FILE)
-│   ├── serializers.py               # Data validation
-│   └── management/commands/
-│       └── seed_crops.py            # Dataset definition
-│
-├── authentication/                   # User management
-├── market_finder/                    # Market location system
-├── agrinova_backend/
-│   ├── settings.py                  # Configuration
-│   └── urls.py                      # API routing
-│
-├── db.sqlite3                       # MySQL Database (agrinova_db)
-├── requirements.txt                 # Dependencies
-└── README.md                        # Documentation
-```
-
----
-
-## 10. Demonstration Points
-
-### For External Examiner Demo:
-
-1. **Show Dataset**: Open `seed_crops.py` - explain crop parameters and optimal ranges
-2. **Explain Algorithm**: Walk through `calculate_suitability_scores()` line by line
-3. **Show Scoring Logic**: Demonstrate `_calculate_parameter_score()` with examples
-4. **Manual Calculation**: Calculate score for Rice with sample inputs on paper/whiteboard
-5. **API Call**: Show Swagger UI at `/swagger/` - make live recommendation
-6. **Database**: Show SQLite database with saved recommendations
-7. **Results**: Display JSON response with rankings and scores
-
-### Sample Questions & Answers:
-
-**Q: Is this a Machine Learning project?**
-A: No, this uses a traditional rule-based algorithm. The core recommendation engine uses scoring logic based on agricultural research, not ML. This makes it more transparent and explainable to farmers.
-
-**Q: Why not use Machine Learning?**
-A: (1) No historical training data available, (2) Agricultural research provides exact optimal ranges, (3) Rule-based approach is more transparent and verifiable, (4) Farmers can understand and trust the logic.
-
-**Q: How does the algorithm work?**
-A: It compares user's soil parameters against optimal ranges for each crop. Parameters within range score 1.0, outside range scores decrease proportionally. Final score is weighted average of all parameters.
-
-**Q: What if user enters invalid data?**
-A: Django serializers validate inputs (pH 0-14, positive NPK values, valid seasons). API returns errors with clear messages.
-
-**Q: How accurate is the system?**
-A: Accuracy depends on data quality. With correct soil tests, recommendations align with NARC agricultural guidelines. The algorithm directly implements expert knowledge, ensuring scientifically-backed recommendations.
-
----
-
-## 11. Conclusion
-
-AgriNova combines:
-- **Domain Expertise**: Agricultural knowledge from NARC and farmers
-- **Algorithmic Approach**: Rule-based scoring system for transparent recommendations
-- **Software Engineering**: RESTful API, mobile app, database design
-- **User-Centric Design**: Simple inputs, clear outputs, actionable insights
-
-**Algorithm Classification**: Traditional computer science algorithm (rule-based scoring with weighted averages), NOT machine learning.
-
-The system is **production-ready**, **well-documented**, **explainable**, and **scalable** for deployment across Nepal's agricultural sector.
-
----
-
-**Document Prepared for**: External Examiner Review  
-**Project**: AgriNova - Agriculture Advisory System  
-**Date**: December 26, 2025  
-**Version**: 1.0
+Prepared for: External Examiner
+Project: AgriNova Agriculture Advisory System
+Updated on: 01 April 2026
+Version: 2.0
