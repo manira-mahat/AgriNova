@@ -27,7 +27,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   final _potassiumFocusNode = FocusNode();
   final _temperatureFocusNode = FocusNode();
   final _phFocusNode = FocusNode();
-  final _rainfallFocusNode = FocusNode();
   final List<TextInputFormatter> _numericInputFormatters = [
     FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
   ];
@@ -35,6 +34,14 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
 
   String _selectedSeason = 'Spring';
   final List<String> _seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  String _selectedRainfallLevel = 'Moderate';
+  final Map<String, (double min, double max, double suggested)>
+  _rainfallLevels = {
+    'Low': (0, 800, 500),
+    'Moderate': (801, 1400, 1100),
+    'High': (1401, 2200, 1800),
+    'Very High': (2201, 3500, 2600),
+  };
 
   Widget _buildGuideChip({required IconData icon, required String text}) {
     return Container(
@@ -128,6 +135,28 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _applyRainfallLevel(_selectedRainfallLevel);
+  }
+
+  void _applyRainfallLevel(String level) {
+    final range = _rainfallLevels[level];
+    if (range == null) {
+      return;
+    }
+    _rainfallController.text = range.$3.toStringAsFixed(0);
+  }
+
+  String _rainfallRangeLabel(String level) {
+    final range = _rainfallLevels[level];
+    if (range == null) {
+      return '';
+    }
+    return '${range.$1.toStringAsFixed(0)}-${range.$2.toStringAsFixed(0)} mm/year';
+  }
+
+  @override
   void dispose() {
     _nitrogenController.dispose();
     _phosphorusController.dispose();
@@ -140,7 +169,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
     _potassiumFocusNode.dispose();
     _temperatureFocusNode.dispose();
     _phFocusNode.dispose();
-    _rainfallFocusNode.dispose();
     super.dispose();
   }
 
@@ -335,26 +363,38 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Rainfall
-                CustomTextField(
-                  label: 'Rainfall (mm)',
-                  controller: _rainfallController,
-                  focusNode: _rainfallFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
                   ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Rainfall',
-                    min: 0,
-                    unit: 'mm/year',
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
                   ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _rainfallFocusNode,
-                  child: _buildRangeUnitGuide(range: '>= 0', unit: 'mm/year'),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedRainfallLevel,
+                    decoration: const InputDecoration(
+                      labelText: 'Rainfall Level',
+                      border: InputBorder.none,
+                    ),
+                    items: _rainfallLevels.keys.map((level) {
+                      return DropdownMenuItem(
+                        value: level,
+                        child: Text('$level (${_rainfallRangeLabel(level)})'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _selectedRainfallLevel = value;
+                        _applyRainfallLevel(value);
+                      });
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
 

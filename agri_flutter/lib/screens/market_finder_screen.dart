@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/market_provider.dart';
 import '../widgets/custom_textfield.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/map_location_picker.dart';
 import 'market_result_screen.dart';
 
 // Simple Market Finder Screen
@@ -18,10 +19,33 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  String _selectedAddress = '';
   final List<TextInputFormatter> _coordinateInputFormatters = [
     FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
   ];
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  void _openMapPicker() {
+    final existingLat = double.tryParse(_latitudeController.text.trim());
+    final existingLng = double.tryParse(_longitudeController.text.trim());
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => MapLocationPicker(
+        initialLat: existingLat,
+        initialLng: existingLng,
+        initialAddress: _selectedAddress,
+        onLocationSelected: (latitude, longitude, address, district) {
+          setState(() {
+            _latitudeController.text = latitude.toStringAsFixed(6);
+            _longitudeController.text = longitude.toStringAsFixed(6);
+            _selectedAddress = address;
+            _autovalidateMode = AutovalidateMode.onUserInteraction;
+          });
+        },
+      ),
+    );
+  }
 
   String? _validateLatitude(String? value) {
     final input = value?.trim() ?? '';
@@ -127,7 +151,7 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Enter your location to find agricultural markets near you',
+                  'Tap on map to select your location and find nearby agricultural markets',
                   style: TextStyle(fontSize: 14, color: Colors.green[600]),
                 ),
                 const SizedBox(height: 30),
@@ -143,7 +167,7 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Text(
-                            'You can get your location coordinates from Google Maps or GPS',
+                            'Tap "Pick from Map" and select your location directly',
                             style: TextStyle(fontSize: 14),
                           ),
                         ),
@@ -151,7 +175,44 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 18),
+
+                InkWell(
+                  onTap: _openMapPicker,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.green.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.green.shade50,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.map, color: Colors.green[700]),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Pick from Map',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_selectedAddress.trim().isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _selectedAddress,
+                    style: TextStyle(fontSize: 12, color: Colors.green[800]),
+                  ),
+                ],
+                const SizedBox(height: 20),
 
                 // Latitude
                 CustomTextField(
