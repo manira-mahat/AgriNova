@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/stats_provider.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/feature_item.dart';
 import '../widgets/app_logo.dart';
@@ -30,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _buildNavigation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<StatsProvider>(context, listen: false).loadHomeStats();
+    });
   }
 
   void _buildNavigation() {
@@ -120,6 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
+            if (index == 0) {
+              Provider.of<StatsProvider>(context, listen: false).loadHomeStats();
+            }
             setState(() {
               _currentIndex = index;
             });
@@ -158,7 +165,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    final statsProvider = Provider.of<StatsProvider>(context);
     final user = userProvider.user;
+    final stats = statsProvider.stats;
+
+    final cropCount = stats != null ? stats.cropTypes.toString() : '--';
+    final marketCount = stats != null ? stats.markets.toString() : '--';
+    final farmerCount = stats != null ? stats.farmers.toString() : '--';
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -467,7 +480,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: StatCard(
                             icon: Icons.eco_rounded,
-                            count: '50+',
+                            count: cropCount,
                             label: 'Crop Types',
                             color: const Color(0xFF43A047),
                           ),
@@ -476,7 +489,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: StatCard(
                             icon: Icons.store_rounded,
-                            count: '100+',
+                            count: marketCount,
                             label: 'Markets',
                             color: const Color(0xFFFF8F00),
                           ),
@@ -485,7 +498,7 @@ class _HomePageState extends State<HomePage> {
                         Expanded(
                           child: StatCard(
                             icon: Icons.people_rounded,
-                            count: '1000+',
+                            count: farmerCount,
                             label: 'Farmers',
                             color: const Color(0xFF1E88E5),
                           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/market_provider.dart';
 import '../widgets/custom_textfield.dart';
@@ -20,9 +19,6 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   String _selectedAddress = '';
-  final List<TextInputFormatter> _coordinateInputFormatters = [
-    FilteringTextInputFormatter.allow(RegExp(r'[0-9.\-]')),
-  ];
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   void _openMapPicker() {
@@ -131,28 +127,76 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
         title: const Text('Market Finder'),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green[800]!, Colors.green[600]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          color: Colors.green[50],
+          child: Consumer<MarketProvider>(
+            builder: (context, marketProvider, child) {
+              return CustomButton(
+                text: 'Find Markets',
+                onPressed: _findMarkets,
+                isLoading: marketProvider.isLoading,
+              );
+            },
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 120),
           child: Form(
             key: _formKey,
             autovalidateMode: _autovalidateMode,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Find Nearby Markets',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green[700],
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.green[50]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: Colors.green.shade100),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Tap on map to select your location and find nearby agricultural markets',
-                  style: TextStyle(fontSize: 14, color: Colors.green[600]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Find Nearby Markets',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.green[800],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap on map to select your location and find nearby agricultural markets',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.green[700],
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 30),
 
@@ -163,12 +207,14 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        Icon(Icons.info, color: Colors.green[700]),
+                        Icon(Icons.lock_outline, color: Colors.green[700]),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Tap "Pick from Map" and select your location directly',
-                            style: TextStyle(fontSize: 14),
+                            _selectedAddress.trim().isEmpty
+                                ? 'Coordinates will auto-fill from map and remain locked for accuracy.'
+                                : 'Location selected. Latitude and longitude are locked and ready to use.',
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ),
                       ],
@@ -207,9 +253,24 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                 ),
                 if (_selectedAddress.trim().isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  Text(
-                    _selectedAddress,
-                    style: TextStyle(fontSize: 12, color: Colors.green[800]),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green[100]!.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      _selectedAddress,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.green[800],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 20),
@@ -218,12 +279,11 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                 CustomTextField(
                   label: 'Latitude',
                   controller: _latitudeController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
+                  readOnly: true,
+                  showCursor: false,
+                  enableInteractiveSelection: false,
+                  onTap: _openMapPicker,
                   validator: _validateLatitude,
-                  inputFormatters: _coordinateInputFormatters,
                   helperText: 'Range: -90 to 90 degrees',
                   textInputAction: TextInputAction.next,
                 ),
@@ -233,26 +293,13 @@ class _MarketFinderScreenState extends State<MarketFinderScreen> {
                 CustomTextField(
                   label: 'Longitude',
                   controller: _longitudeController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
+                  readOnly: true,
+                  showCursor: false,
+                  enableInteractiveSelection: false,
+                  onTap: _openMapPicker,
                   validator: _validateLongitude,
-                  inputFormatters: _coordinateInputFormatters,
                   helperText: 'Range: -180 to 180 degrees',
                   textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: 24),
-
-                // Find Markets button
-                Consumer<MarketProvider>(
-                  builder: (context, marketProvider, child) {
-                    return CustomButton(
-                      text: 'Find Markets',
-                      onPressed: _findMarkets,
-                      isLoading: marketProvider.isLoading,
-                    );
-                  },
                 ),
               ],
             ),
