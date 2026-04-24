@@ -18,6 +18,13 @@ dependencies:
   
   # Local Storage
   shared_preferences: ^2.2.2
+
+  # Free map stack
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+
+  # Reverse geocoding for selected coordinates
+  geocoding: ^4.0.0
   
   # Icons
   cupertino_icons: ^1.0.8

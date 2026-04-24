@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/crop.dart';
 import '../providers/crop_provider.dart';
 import '../widgets/custom_textfield.dart';
 
@@ -330,6 +331,345 @@ class _AdminCropsScreenState extends State<AdminCropsScreen> {
     );
   }
 
+  void _showEditCropDialog(Crop crop) {
+    final nameController = TextEditingController(text: crop.name);
+    final nMinController = TextEditingController(
+      text: crop.nitrogenMin.toStringAsFixed(1),
+    );
+    final nMaxController = TextEditingController(
+      text: crop.nitrogenMax.toStringAsFixed(1),
+    );
+    final pMinController = TextEditingController(
+      text: crop.phosphorusMin.toStringAsFixed(1),
+    );
+    final pMaxController = TextEditingController(
+      text: crop.phosphorusMax.toStringAsFixed(1),
+    );
+    final kMinController = TextEditingController(
+      text: crop.potassiumMin.toStringAsFixed(1),
+    );
+    final kMaxController = TextEditingController(
+      text: crop.potassiumMax.toStringAsFixed(1),
+    );
+    final phMinController = TextEditingController(
+      text: crop.phMin.toStringAsFixed(1),
+    );
+    final phMaxController = TextEditingController(
+      text: crop.phMax.toStringAsFixed(1),
+    );
+    final rainfallMinController = TextEditingController(
+      text: crop.rainfallMin.toStringAsFixed(1),
+    );
+    final rainfallMaxController = TextEditingController(
+      text: crop.rainfallMax.toStringAsFixed(1),
+    );
+
+    final seasonOptions = ['Spring', 'Summer', 'Autumn', 'Winter'];
+    final parsedSeason = crop.suitableSeasons
+        .split(',')
+        .map((s) => s.trim())
+        .firstWhere(
+          (s) => seasonOptions.contains(s),
+          orElse: () => 'Spring',
+        );
+
+    String? selectedSeason = parsedSeason;
+    final formKey = GlobalKey<FormState>();
+    bool autoValidate = false;
+    String? apiErrorMessage;
+
+    String? validateRequiredText(String? value, String fieldName) {
+      if (value == null || value.trim().isEmpty) {
+        return '$fieldName is required';
+      }
+      return null;
+    }
+
+    String? validateRequiredNumber(
+      String? value,
+      String fieldName, {
+      double? min,
+      double? max,
+    }) {
+      if (value == null || value.trim().isEmpty) {
+        return '$fieldName is required';
+      }
+
+      final parsed = double.tryParse(value.trim());
+      if (parsed == null) {
+        return '$fieldName must be a valid number';
+      }
+
+      if (min != null && parsed < min) {
+        return '$fieldName cannot be less than $min';
+      }
+
+      if (max != null && parsed > max) {
+        return '$fieldName cannot be more than $max';
+      }
+
+      return null;
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          title: Text('Edit ${crop.name}'),
+          content: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 340),
+              child: Form(
+                key: formKey,
+                autovalidateMode: autoValidate
+                    ? AutovalidateMode.always
+                    : AutovalidateMode.disabled,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomTextField(
+                      label: 'Crop Name',
+                      controller: nameController,
+                      validator: (value) => validateRequiredText(value, 'Crop Name'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'N Min',
+                      controller: nMinController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) => validateRequiredNumber(value, 'N Min'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'N Max',
+                      controller: nMaxController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final error = validateRequiredNumber(value, 'N Max');
+                        if (error != null) return error;
+                        final maxValue = double.parse(value!.trim());
+                        final minValue = double.tryParse(nMinController.text.trim());
+                        if (minValue != null && maxValue < minValue) {
+                          return 'N Max must be greater than or equal to N Min';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'P Min',
+                      controller: pMinController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) => validateRequiredNumber(value, 'P Min'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'P Max',
+                      controller: pMaxController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final error = validateRequiredNumber(value, 'P Max');
+                        if (error != null) return error;
+                        final maxValue = double.parse(value!.trim());
+                        final minValue = double.tryParse(pMinController.text.trim());
+                        if (minValue != null && maxValue < minValue) {
+                          return 'P Max must be greater than or equal to P Min';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'K Min',
+                      controller: kMinController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) => validateRequiredNumber(value, 'K Min'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'K Max',
+                      controller: kMaxController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final error = validateRequiredNumber(value, 'K Max');
+                        if (error != null) return error;
+                        final maxValue = double.parse(value!.trim());
+                        final minValue = double.tryParse(kMinController.text.trim());
+                        if (minValue != null && maxValue < minValue) {
+                          return 'K Max must be greater than or equal to K Min';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'pH Min',
+                      controller: phMinController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) =>
+                          validateRequiredNumber(value, 'pH Min', min: 0),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'pH Max',
+                      controller: phMaxController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final error = validateRequiredNumber(
+                          value,
+                          'pH Max',
+                          min: 0,
+                          max: 14,
+                        );
+                        if (error != null) return error;
+                        final maxValue = double.parse(value!.trim());
+                        final minValue = double.tryParse(phMinController.text.trim());
+                        if (minValue != null && maxValue < minValue) {
+                          return 'pH Max must be greater than or equal to pH Min';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'Rainfall Min (mm)',
+                      controller: rainfallMinController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) =>
+                          validateRequiredNumber(value, 'Rainfall Min'),
+                    ),
+                    const SizedBox(height: 12),
+                    CustomTextField(
+                      label: 'Rainfall Max (mm)',
+                      controller: rainfallMaxController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        final error = validateRequiredNumber(value, 'Rainfall Max');
+                        if (error != null) return error;
+                        final maxValue = double.parse(value!.trim());
+                        final minValue = double.tryParse(
+                          rainfallMinController.text.trim(),
+                        );
+                        if (minValue != null && maxValue < minValue) {
+                          return 'Rainfall Max must be greater than or equal to Rainfall Min';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedSeason,
+                      decoration: InputDecoration(
+                        labelText: 'Suitable Season',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      items: seasonOptions
+                          .map(
+                            (season) => DropdownMenuItem<String>(
+                              value: season,
+                              child: Text(season),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedSeason = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Suitable Season is required' : null,
+                    ),
+                    if (apiErrorMessage != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        apiErrorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                setDialogState(() {
+                  apiErrorMessage = null;
+                });
+
+                final isValid = formKey.currentState?.validate() ?? false;
+                if (!isValid) {
+                  setDialogState(() {
+                    autoValidate = true;
+                  });
+                  return;
+                }
+
+                final minN = double.parse(nMinController.text.trim());
+                final maxN = double.parse(nMaxController.text.trim());
+                final minP = double.parse(pMinController.text.trim());
+                final maxP = double.parse(pMaxController.text.trim());
+                final minK = double.parse(kMinController.text.trim());
+                final maxK = double.parse(kMaxController.text.trim());
+                final minPh = double.parse(phMinController.text.trim());
+                final maxPh = double.parse(phMaxController.text.trim());
+                final minRain = double.parse(rainfallMinController.text.trim());
+                final maxRain = double.parse(rainfallMaxController.text.trim());
+                final seasons = selectedSeason!;
+
+                final data = {
+                  "name": nameController.text.trim(),
+                  "min_ph": minPh,
+                  "max_ph": maxPh,
+                  "min_nitrogen": minN,
+                  "max_nitrogen": maxN,
+                  "min_phosphorus": minP,
+                  "max_phosphorus": maxP,
+                  "min_potassium": minK,
+                  "max_potassium": maxK,
+                  "min_rainfall": minRain,
+                  "max_rainfall": maxRain,
+                  "suitable_seasons": seasons,
+                };
+
+                final cropProvider = Provider.of<CropProvider>(
+                  dialogContext,
+                  listen: false,
+                );
+                final success = await cropProvider.updateCrop(crop.id, data);
+
+                if (success && mounted) {
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(content: Text('Crop updated successfully!')),
+                  );
+                } else if (mounted) {
+                  setDialogState(() {
+                    apiErrorMessage = cropProvider.error ?? 'Failed to update crop';
+                  });
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cropProvider = Provider.of<CropProvider>(context);
@@ -374,6 +714,7 @@ class _AdminCropsScreenState extends State<AdminCropsScreen> {
                     elevation: 2,
                     margin: const EdgeInsets.only(bottom: 16),
                     child: ListTile(
+                      onTap: () => _showEditCropDialog(crop),
                       leading: Icon(
                         Icons.grass,
                         color: Colors.green[700],
@@ -387,7 +728,7 @@ class _AdminCropsScreenState extends State<AdminCropsScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        'N: ${crop.nitrogenMin}-${crop.nitrogenMax} | P: ${crop.phosphorusMin}-${crop.phosphorusMax} | K: ${crop.potassiumMin}-${crop.potassiumMax}',
+                        'N: ${crop.nitrogenMin}-${crop.nitrogenMax} | P: ${crop.phosphorusMin}-${crop.phosphorusMax} | K: ${crop.potassiumMin}-${crop.potassiumMax}\nTap to edit',
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),

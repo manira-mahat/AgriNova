@@ -5,6 +5,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, get_user_model
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from crop_recommendation.models import Crop
+from market_finder.models import Market
 from .serializers import (
     UserSerializer, 
     UserRegistrationSerializer, 
@@ -186,3 +188,39 @@ class AdminUserDeleteView(generics.DestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return super().destroy(request, *args, **kwargs)
+
+
+class AppStatsView(APIView):
+    """
+    Public dashboard statistics for app home screen.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Get dynamic counts for crops, markets, and farmers",
+        responses={
+            200: openapi.Response(
+                description="Dashboard stats",
+                examples={
+                    "application/json": {
+                        "crop_types": 52,
+                        "markets": 108,
+                        "farmers": 1034,
+                    }
+                },
+            )
+        },
+    )
+    def get(self, request):
+        return Response(
+            {
+                'crop_types': Crop.objects.count(),
+                'markets': Market.objects.filter(is_active=True).count(),
+                'farmers': User.objects.filter(
+                    is_staff=False,
+                    is_superuser=False,
+                    is_active=True,
+                ).count(),
+            },
+            status=status.HTTP_200_OK,
+        )

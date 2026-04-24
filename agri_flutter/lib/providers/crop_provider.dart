@@ -90,6 +90,29 @@ class CropProvider with ChangeNotifier {
     }
   }
 
+  // Update crop (Admin)
+  Future<bool> updateCrop(int id, Map<String, dynamic> data) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedCrop = await CropService.updateCrop(id, data);
+      final index = _crops.indexWhere((crop) => crop.id == id);
+      if (index != -1) {
+        _crops[index] = updatedCrop;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Delete crop (Admin)
   Future<bool> deleteCrop(int id) async {
     _isLoading = true;

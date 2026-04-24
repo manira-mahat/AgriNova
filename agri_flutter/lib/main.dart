@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/crop_provider.dart';
 import 'providers/market_provider.dart';
 import 'providers/user_provider.dart';
+import 'providers/stats_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CropProvider()),
         ChangeNotifierProvider(create: (_) => MarketProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => StatsProvider()),
       ],
       child: MaterialApp(
         title: 'AgriNova',
