@@ -7,6 +7,7 @@ from .views import (
     UserProfileDetailView,
     AdminUserListView,
     AdminUserDeleteView,
+    AppStatsView,
 )
 
 app_name = 'authentication'
@@ -19,4 +20,5 @@ urlpatterns = [
     path('profile/detail/', UserProfileDetailView.as_view(), name='profile-detail'),
     path('users/', AdminUserListView.as_view(), name='admin-user-list'),
     path('users/<int:pk>/', AdminUserDeleteView.as_view(), name='admin-user-delete'),
+    path('stats/', AppStatsView.as_view(), name='app-stats'),
 ]

@@ -90,8 +90,20 @@ class MarketResultScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 12),
                                 _buildInfoRow(
-                                  Icons.location_on,
-                                  market.district,
+                                  Icons.location_city,
+                                  'District: ${market.district}',
+                                ),
+                                _buildInfoRow(
+                                  Icons.my_location,
+                                  'Latitude: ${market.latitude.toStringAsFixed(6)}',
+                                ),
+                                _buildInfoRow(
+                                  Icons.explore,
+                                  'Longitude: ${market.longitude.toStringAsFixed(6)}',
+                                ),
+                                _buildInfoRow(
+                                  Icons.storefront,
+                                  'Market Type: ${_formatMarketType(market.marketType)}',
                                 ),
                                 if (market.address != null)
                                   _buildInfoRow(Icons.place, market.address!),
@@ -158,5 +170,18 @@ class MarketResultScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatMarketType(String marketType) {
+    return marketType
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) {
+            return word;
+          }
+          return word[0].toUpperCase() + word.substring(1);
+        })
+        .join(' ');
   }
 }

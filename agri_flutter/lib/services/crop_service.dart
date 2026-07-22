@@ -32,6 +32,12 @@ class CropService {
     return Crop.fromJson(response);
   }
 
+  // Update crop (Admin)
+  static Future<Crop> updateCrop(int id, Map<String, dynamic> data) async {
+    final response = await ApiService.put("crops/crops/$id/", data);
+    return Crop.fromJson(response);
+  }
+
   // Delete crop (Admin)
   static Future<void> deleteCrop(int id) async {
     await ApiService.delete("crops/crops/$id/");

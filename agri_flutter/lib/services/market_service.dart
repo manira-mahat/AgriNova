@@ -31,6 +31,12 @@ class MarketService {
     return Market.fromJson(response);
   }
 
+  // Update market (Admin)
+  static Future<Market> updateMarket(int id, Map<String, dynamic> data) async {
+    final response = await ApiService.put("markets/markets/$id/", data);
+    return Market.fromJson(response);
+  }
+
   // Delete market (Admin)
   static Future<void> deleteMarket(int id) async {
     await ApiService.delete("markets/markets/$id/");

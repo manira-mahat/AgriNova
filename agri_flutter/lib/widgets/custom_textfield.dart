@@ -13,6 +13,11 @@ class CustomTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final TextInputAction? textInputAction;
   final FocusNode? focusNode;
+  final bool readOnly;
+  final bool enabled;
+  final bool? enableInteractiveSelection;
+  final bool? showCursor;
+  final VoidCallback? onTap;
 
   const CustomTextField({
     super.key,
@@ -26,6 +31,11 @@ class CustomTextField extends StatelessWidget {
     this.inputFormatters,
     this.textInputAction,
     this.focusNode,
+    this.readOnly = false,
+    this.enabled = true,
+    this.enableInteractiveSelection,
+    this.showCursor,
+    this.onTap,
   });
 
   @override
@@ -39,6 +49,11 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       inputFormatters: inputFormatters,
       textInputAction: textInputAction,
+      readOnly: readOnly,
+      enabled: enabled,
+      enableInteractiveSelection: enableInteractiveSelection,
+      showCursor: showCursor,
+      onTap: onTap,
       decoration: InputDecoration(
         labelText: label,
         helperText: helperText,
