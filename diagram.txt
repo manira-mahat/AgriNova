@@ -1,0 +1,176 @@
+classDiagram
+direction LR
+
+class CustomUser {
+	-int id
+	-string username
+	-string email
+	-string password
+	-string phone_number
+	-string district
+	-string address
+	-datetime date_created
+	-datetime date_updated
+	+register()
+	+login()
+	+logout()
+	+updateProfile()
+	+getRecommendation()
+	+findNearestMarket()
+}
+
+class Admin {
+	-bool is_staff
+	-bool is_superuser
+	+manageUsers()
+	+manageCrops()
+	+manageMarkets()
+}
+
+class UserProfile {
+	-int id
+	-float farm_size
+	-int farming_experience
+	-string preferred_crops
+	-float latitude
+	-float longitude
+	+updateProfile()
+	+updatePreferences()
+	+getProfileSummary()
+}
+
+class Crop {
+	-int id
+	-string name
+	-string scientific_name
+	-string description
+	-float min_ph
+	-float max_ph
+	-float min_nitrogen
+	-float max_nitrogen
+	-float min_phosphorus
+	-float max_phosphorus
+	-float min_potassium
+	-float max_potassium
+	-float min_rainfall
+	-float max_rainfall
+	-string suitable_seasons
+	-int growth_duration
+	-float yield_per_hectare
+	-float market_price
+	+getSuitableCrops()
+	+matchesSoilData()
+	+getCropDetails()
+}
+
+class SoilData {
+	-int id
+	-float ph_level
+	-float nitrogen
+	-float phosphorus
+	-float potassium
+	-float rainfall
+	-float temperature
+	-float humidity
+	-string district
+	-string season
+	-datetime test_date
+	-string notes
+	+analyzeSoil()
+	+validateData()
+	+submitData()
+}
+
+class CropRecommendation {
+	-int id
+	-string algorithm_used
+	-float confidence_score
+	-datetime created_at
+	-bool is_active
+	+generate()
+	+getRecommendedCrop()
+	+getRecommendationSummary()
+}
+
+class RecommendationScore {
+	-int id
+	-float score
+	-int ranking
+	+calculateScore()
+	+rankCrops()
+}
+
+class CropRecommendationHistoryView {
+	+get()
+	+get_queryset()
+}
+
+class Market {
+	-int id
+	-string name
+	-string district
+	-string address
+	-float latitude
+	-float longitude
+	-string market_type
+	-string contact_person
+	-string phone_number
+	-string email
+	-time opening_time
+	-time closing_time
+	-string operating_days
+	-bool has_cold_storage
+	-bool has_grading_facility
+	-bool has_packaging_facility
+	-bool transportation_available
+	-bool is_active
+	-datetime created_at
+	-datetime updated_at
+	+calculateDistance()
+	+getPrices()
+	+updateDetails()
+	+findNearestMarket()
+}
+
+class MarketPrice {
+	-int id
+	-string crop_name
+	-float price_per_kg
+	-string unit
+	-date price_date
+	-string source
+	-string quality_grade
+	-datetime created_at
+	+updatePrice()
+	+getLatestPrice()
+	+comparePrice()
+}
+
+class MarketSearch {
+	-int id
+	-float search_latitude
+	-float search_longitude
+	-string search_district
+	-string crop_to_sell
+	-float distance_km
+	-datetime search_date
+	+searchMarkets()
+	+findNearestMarket()
+	+filterByCrop()
+}
+
+CustomUser <|-- Admin
+
+CustomUser "1" --> "1" UserProfile : has
+CustomUser "1" --> "*" SoilData : submits
+SoilData "1" --> "*" CropRecommendation : generates
+CropRecommendation "1" --> "*" RecommendationScore : contains
+RecommendationScore "*" --> "1" Crop : rates
+CropRecommendation "1" --> "*" Crop : includes
+CustomUser "1" --> "*" CropRecommendation : stores
+CustomUser "1" --> "*" MarketSearch : performs
+MarketSearch "1" --> "0..*" Market : returns
+Market "1" --> "*" MarketPrice : has
+Admin "1" --> "*" Crop : manages
+Admin "1" --> "*" Market : manages
+CropRecommendationHistoryView ..> CropRecommendation : lists

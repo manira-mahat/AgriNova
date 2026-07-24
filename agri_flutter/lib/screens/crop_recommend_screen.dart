@@ -27,7 +27,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   final _potassiumFocusNode = FocusNode();
   final _temperatureFocusNode = FocusNode();
   final _phFocusNode = FocusNode();
-  final _rainfallFocusNode = FocusNode();
   final List<TextInputFormatter> _numericInputFormatters = [
     FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
   ];
@@ -35,6 +34,14 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
 
   String _selectedSeason = 'Spring';
   final List<String> _seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  String _selectedRainfallLevel = 'Moderate';
+  final Map<String, (double min, double max, double suggested)>
+  _rainfallLevels = {
+    'Low': (0, 800, 500),
+    'Moderate': (801, 1400, 1100),
+    'High': (1401, 2200, 1800),
+    'Very High': (2201, 3500, 2600),
+  };
 
   Widget _buildGuideChip({required IconData icon, required String text}) {
     return Container(
@@ -128,6 +135,95 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _applyRainfallLevel(_selectedRainfallLevel);
+  }
+
+  void _applyRainfallLevel(String level) {
+    final range = _rainfallLevels[level];
+    if (range == null) {
+      return;
+    }
+    _rainfallController.text = range.$3.toStringAsFixed(0);
+  }
+
+  String _rainfallRangeLabel(String level) {
+    final range = _rainfallLevels[level];
+    if (range == null) {
+      return '';
+    }
+    return '${range.$1.toStringAsFixed(0)}-${range.$2.toStringAsFixed(0)} mm/year';
+  }
+
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.16),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withOpacity(0.22)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.88),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.green[900],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 13.5,
+            height: 1.45,
+            color: Colors.green[700],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
   void dispose() {
     _nitrogenController.dispose();
     _phosphorusController.dispose();
@@ -140,7 +236,6 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
     _potassiumFocusNode.dispose();
     _temperatureFocusNode.dispose();
     _phFocusNode.dispose();
-    _rainfallFocusNode.dispose();
     super.dispose();
   }
 
@@ -185,225 +280,411 @@ class _CropRecommendScreenState extends State<CropRecommendScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[50],
+      backgroundColor: const Color(0xFFEAF7EE),
       appBar: AppBar(
         title: const Text('Crop Recommendation'),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: _autovalidateMode,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Enter Soil & Climate Data',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green[700],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Provide the following information to get crop recommendations',
-                  style: TextStyle(fontSize: 14, color: Colors.green[600]),
-                ),
-                const SizedBox(height: 30),
-
-                // Nitrogen
-                CustomTextField(
-                  label: 'Nitrogen (N)',
-                  controller: _nitrogenController,
-                  focusNode: _nitrogenFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Nitrogen',
-                    min: 0,
-                    max: 1000,
-                    unit: 'kg/ha',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _nitrogenFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
-                ),
-                const SizedBox(height: 16),
-
-                // Phosphorus
-                CustomTextField(
-                  label: 'Phosphorus (P)',
-                  controller: _phosphorusController,
-                  focusNode: _phosphorusFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Phosphorus',
-                    min: 5,
-                    max: 1000,
-                    unit: 'kg/ha',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _phosphorusFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
-                ),
-                const SizedBox(height: 16),
-
-                // Potassium
-                CustomTextField(
-                  label: 'Potassium (K)',
-                  controller: _potassiumController,
-                  focusNode: _potassiumFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Potassium',
-                    min: 0,
-                    max: 1000,
-                    unit: 'kg/ha',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _potassiumFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-1000', unit: 'kg/ha'),
-                ),
-                const SizedBox(height: 16),
-
-                // Temperature
-                CustomTextField(
-                  label: 'Temperature (°C)',
-                  controller: _temperatureController,
-                  focusNode: _temperatureFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Temperature',
-                    min: 0,
-                    max: 50,
-                    unit: '°C',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _temperatureFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-50', unit: '°C'),
-                ),
-                const SizedBox(height: 16),
-
-                // pH
-                CustomTextField(
-                  label: 'pH Level',
-                  controller: _phController,
-                  focusNode: _phFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'pH Level',
-                    min: 0,
-                    max: 14,
-                    unit: 'pH',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _phFocusNode,
-                  child: _buildRangeUnitGuide(range: '0-14', unit: 'pH'),
-                ),
-                const SizedBox(height: 16),
-
-                // Rainfall
-                CustomTextField(
-                  label: 'Rainfall (mm)',
-                  controller: _rainfallController,
-                  focusNode: _rainfallFocusNode,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (value) => _validateNumericField(
-                    value,
-                    field: 'Rainfall',
-                    min: 0,
-                    unit: 'mm/year',
-                  ),
-                  inputFormatters: _numericInputFormatters,
-                  textInputAction: TextInputAction.next,
-                ),
-                _buildGuideOnFocus(
-                  focusNode: _rainfallFocusNode,
-                  child: _buildRangeUnitGuide(range: '>= 0', unit: 'mm/year'),
-                ),
-                const SizedBox(height: 16),
-
-                // Season dropdown
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedSeason,
-                    decoration: const InputDecoration(
-                      labelText: 'Season',
-                      border: InputBorder.none,
-                    ),
-                    items: _seasons.map((season) {
-                      return DropdownMenuItem(
-                        value: season,
-                        child: Text(season),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSeason = value!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Get Recommendation button
-                Consumer<CropProvider>(
-                  builder: (context, cropProvider, child) {
-                    return CustomButton(
-                      text: 'Get Recommendation',
-                      onPressed: _getRecommendation,
-                      isLoading: cropProvider.isLoading,
-                    );
-                  },
-                ),
-              ],
+        elevation: 0,
+        centerTitle: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.green[800]!, Colors.green[600]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
         ),
+      ),
+      body: Stack(
+        children: [
+          Positioned(
+            top: -60,
+            right: -30,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.24),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 100,
+            left: -40,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green.withOpacity(0.10),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+              child: Form(
+                key: _formKey,
+                autovalidateMode: _autovalidateMode,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green[800]!,
+                            Colors.green[600]!,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.18),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.16),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.spa_rounded,
+                                  color: Colors.white,
+                                  size: 26,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Crop Recommendation',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Tune your soil and climate inputs for smarter crop suggestions.',
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.88),
+                                        fontSize: 13,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              _buildInfoChip(
+                                icon: Icons.grass_rounded,
+                                title: 'Soil Metrics',
+                                value: '5 Inputs',
+                                color: const Color(0xFFC8FACC),
+                              ),
+                              const SizedBox(width: 10),
+                              _buildInfoChip(
+                                icon: Icons.cloud_rounded,
+                                title: 'Climate',
+                                value: '2 Inputs',
+                                color: const Color(0xFFE3F2FD),
+                              ),
+                              const SizedBox(width: 10),
+                              _buildInfoChip(
+                                icon: Icons.auto_awesome_rounded,
+                                title: 'Result',
+                                value: 'Best Crop',
+                                color: const Color(0xFFFFF3C4),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 25,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionLabel(
+                            'Enter Soil & Climate Data',
+                            'Provide the following information to get crop recommendations.',
+                          ),
+                          const SizedBox(height: 22),
+                          CustomTextField(
+                            label: 'Nitrogen (N)',
+                            controller: _nitrogenController,
+                            focusNode: _nitrogenFocusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) => _validateNumericField(
+                              value,
+                              field: 'Nitrogen',
+                              min: 0,
+                              max: 1000,
+                              unit: 'kg/ha',
+                            ),
+                            inputFormatters: _numericInputFormatters,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          _buildGuideOnFocus(
+                            focusNode: _nitrogenFocusNode,
+                            child: _buildRangeUnitGuide(
+                              range: '0-1000',
+                              unit: 'kg/ha',
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          CustomTextField(
+                            label: 'Phosphorus (P)',
+                            controller: _phosphorusController,
+                            focusNode: _phosphorusFocusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) => _validateNumericField(
+                              value,
+                              field: 'Phosphorus',
+                              min: 5,
+                              max: 1000,
+                              unit: 'kg/ha',
+                            ),
+                            inputFormatters: _numericInputFormatters,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          _buildGuideOnFocus(
+                            focusNode: _phosphorusFocusNode,
+                            child: _buildRangeUnitGuide(
+                              range: '0-1000',
+                              unit: 'kg/ha',
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          CustomTextField(
+                            label: 'Potassium (K)',
+                            controller: _potassiumController,
+                            focusNode: _potassiumFocusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) => _validateNumericField(
+                              value,
+                              field: 'Potassium',
+                              min: 0,
+                              max: 1000,
+                              unit: 'kg/ha',
+                            ),
+                            inputFormatters: _numericInputFormatters,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          _buildGuideOnFocus(
+                            focusNode: _potassiumFocusNode,
+                            child: _buildRangeUnitGuide(
+                              range: '0-1000',
+                              unit: 'kg/ha',
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          CustomTextField(
+                            label: 'Temperature (°C)',
+                            controller: _temperatureController,
+                            focusNode: _temperatureFocusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) => _validateNumericField(
+                              value,
+                              field: 'Temperature',
+                              min: 0,
+                              max: 50,
+                              unit: '°C',
+                            ),
+                            inputFormatters: _numericInputFormatters,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          _buildGuideOnFocus(
+                            focusNode: _temperatureFocusNode,
+                            child: _buildRangeUnitGuide(range: '0-50', unit: '°C'),
+                          ),
+                          const SizedBox(height: 14),
+                          CustomTextField(
+                            label: 'pH Level',
+                            controller: _phController,
+                            focusNode: _phFocusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) => _validateNumericField(
+                              value,
+                              field: 'pH Level',
+                              min: 0,
+                              max: 14,
+                              unit: 'pH',
+                            ),
+                            inputFormatters: _numericInputFormatters,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          _buildGuideOnFocus(
+                            focusNode: _phFocusNode,
+                            child: _buildRangeUnitGuide(range: '0-14', unit: 'pH'),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFF9FFF9),
+                                  Colors.green[50]!,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: Colors.green[100]!),
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedRainfallLevel,
+                              decoration: const InputDecoration(
+                                labelText: 'Rainfall Level',
+                                border: InputBorder.none,
+                              ),
+                              items: _rainfallLevels.keys.map((level) {
+                                return DropdownMenuItem(
+                                  value: level,
+                                  child: Text(
+                                    '$level (${_rainfallRangeLabel(level)})',
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value == null) {
+                                  return;
+                                }
+                                setState(() {
+                                  _selectedRainfallLevel = value;
+                                  _applyRainfallLevel(value);
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFF9FFF9),
+                                  Colors.green[50]!,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: Colors.green[100]!),
+                            ),
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedSeason,
+                              decoration: const InputDecoration(
+                                labelText: 'Season',
+                                border: InputBorder.none,
+                              ),
+                              items: _seasons.map((season) {
+                                return DropdownMenuItem(
+                                  value: season,
+                                  child: Text(season),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedSeason = value!;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          Consumer<CropProvider>(
+                            builder: (context, cropProvider, child) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.25),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: CustomButton(
+                                  text: 'Get Recommendation',
+                                  onPressed: _getRecommendation,
+                                  isLoading: cropProvider.isLoading,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Tip: Fill in accurate values for better crop suggestions.',
+                      style: TextStyle(
+                        color: Colors.green[800],
+                        fontSize: 12.5,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -87,6 +87,29 @@ class MarketProvider with ChangeNotifier {
     }
   }
 
+  // Update market (Admin)
+  Future<bool> updateMarket(int id, Map<String, dynamic> data) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedMarket = await MarketService.updateMarket(id, data);
+      final marketIndex = _markets.indexWhere((market) => market.id == id);
+      if (marketIndex != -1) {
+        _markets[marketIndex] = updatedMarket;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Delete market (Admin)
   Future<bool> deleteMarket(int id) async {
     _isLoading = true;

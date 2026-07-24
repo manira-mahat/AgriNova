@@ -10,6 +10,9 @@ class Crop {
   final double potassiumMax;
   final double phMin;
   final double phMax;
+  final double rainfallMin;
+  final double rainfallMax;
+  final String suitableSeasons;
 
   Crop({
     required this.id,
@@ -22,6 +25,9 @@ class Crop {
     required this.potassiumMax,
     required this.phMin,
     required this.phMax,
+    required this.rainfallMin,
+    required this.rainfallMax,
+    required this.suitableSeasons,
   });
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -46,6 +52,9 @@ class Crop {
       potassiumMax: asDouble(json['max_potassium'] ?? json['potassium_max']),
       phMin: asDouble(json['min_ph'] ?? json['ph_min']),
       phMax: asDouble(json['max_ph'] ?? json['ph_max']),
+      rainfallMin: asDouble(json['min_rainfall'] ?? json['rainfall_min']),
+      rainfallMax: asDouble(json['max_rainfall'] ?? json['rainfall_max']),
+      suitableSeasons: (json['suitable_seasons'] ?? '').toString(),
     );
   }
 }
